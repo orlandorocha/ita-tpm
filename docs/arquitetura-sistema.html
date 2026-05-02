@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arquitetura do Sistema - Manutenção ITA</title>
+    <style>
+      :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface-alt: #eef4f5;
+        --text: #16212b;
+        --muted: #52616d;
+        --line: #d7e0e5;
+        --accent: #0c7b93;
+        --accent-strong: #085d70;
+        --accent-soft: #d8eef2;
+        --ok: #2f855a;
+        --warn: #b7791f;
+        --shadow: 0 18px 42px rgba(16, 24, 40, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--bg);
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Calibri", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top right, rgba(12, 123, 147, 0.1), transparent 22%),
+          linear-gradient(180deg, #f8fbfc 0%, #f3f6f8 100%);
+      }
+
+      .page {
+        width: min(1180px, calc(100vw - 48px));
+        margin: 24px auto 48px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #0f1720 0%, #173d46 58%, #0c7b93 100%);
+        color: #f8fbfc;
+        border-radius: 24px;
+        padding: 36px 40px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto -60px -60px auto;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        opacity: 0.72;
+        margin: 0 0 10px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.08;
+        max-width: 760px;
+      }
+
+      .hero p {
+        margin: 16px 0 0;
+        max-width: 760px;
+        line-height: 1.6;
+        color: rgba(248, 251, 252, 0.86);
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 26px;
+      }
+
+      .meta-card {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 14px 16px;
+        backdrop-filter: blur(6px);
+      }
+
+      .meta-card strong {
+        display: block;
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+
+      .meta-card span {
+        font-size: 12px;
+        color: rgba(248, 251, 252, 0.78);
+      }
+
+      .section {
+        margin-top: 24px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      .section h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+
+      .section p.lead {
+        margin: 0 0 22px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 22px;
+        align-items: start;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbfc 100%);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+      }
+
+      .card h3 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      .card p,
+      .card li,
+      .summary li,
+      .matrix td,
+      .matrix th,
+      .note,
+      .legend li {
+        line-height: 1.55;
+        color: var(--text);
+      }
+
+      .card ul,
+      .summary ul,
+      .legend ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .tag {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .diagram-panel {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: linear-gradient(180deg, #fcfefe 0%, #f6fafb 100%);
+        padding: 12px;
+      }
+
+      .diagram-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+
+      .summary {
+        background: var(--surface-alt);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+      }
+
+      .summary h3 {
+        margin: 0 0 12px;
+      }
+
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+      }
+
+      .matrix th {
+        background: #e8f2f4;
+        color: var(--accent-strong);
+        text-align: left;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .matrix th,
+      .matrix td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      .matrix tr:last-child td {
+        border-bottom: none;
+      }
+
+      .note {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--accent);
+        background: #f5fbfd;
+        border-radius: 12px;
+      }
+
+      .grid-wide {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .footer {
+        margin: 20px 0 12px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .mermaid {
+        overflow-x: auto;
+      }
+
+      @media print {
+        html,
+        body {
+          background: #ffffff;
+        }
+
+        .page {
+          width: 100%;
+          margin: 0;
+        }
+
+        .hero,
+        .section {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+
+        .section {
+          margin-top: 16px;
+        }
+      }
+
+      @media (max-width: 920px) {
+        .meta-grid,
+        .two-col,
+        .cards,
+        .grid-wide {
+          grid-template-columns: 1fr;
+        }
+
+        .hero,
+        .section {
+          padding: 22px;
+        }
+
+        .page {
+          width: min(100vw, calc(100vw - 24px));
+          margin: 12px auto 24px;
+        }
+      }
+    </style>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+          primaryColor: "#d8eef2",
+          primaryTextColor: "#16212b",
+          primaryBorderColor: "#0c7b93",
+          lineColor: "#5d7480",
+          secondaryColor: "#eef4f5",
+          tertiaryColor: "#ffffff",
+          fontFamily: "Segoe UI, Calibri, sans-serif",
+          background: "#ffffff",
+        },
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis",
+        },
+      });
+    </script>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <p class="eyebrow">Documento técnico executivo</p>
+        <h1>Fluxograma completo do projeto Manutenção ITA e seus relacionamentos com a base de dados</h1>
+        <p>
+          Este documento consolida a arquitetura do sistema, a navegação funcional, os fluxos críticos de negócio,
+          a camada de autenticação e permissões, e o modelo relacional do banco Supabase/PostgreSQL utilizado pela aplicação.
+        </p>
+        <div class="meta-grid">
+          <div class="meta-card">
+            <strong>Next.js</strong>
+            <span>App Router com interface React e TypeScript</span>
+          </div>
+          <div class="meta-card">
+            <strong>8 módulos</strong>
+            <span>Dashboard, OS, tempo, equipe, escalas, ativos, relatórios e usuários</span>
+          </div>
+          <div class="meta-card">
+            <strong>11 tabelas</strong>
+            <span>Domínio operacional, autenticação, histórico e escalas</span>
+          </div>
+          <div class="meta-card">
+            <strong>Supabase</strong>
+            <span>Camada de dados, realtime e persistência relacional</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>1. Visão geral da solução</h2>
+        <p class="lead">
+          O sistema foi estruturado em quatro camadas principais: apresentação, lógica de aplicação, integração com dados e banco relacional.
+          A navegação é protegida por autenticação local validada no Supabase, e cada módulo usa hooks especializados para realizar operações CRUD,
+          compor dados e sincronizar a interface com eventos de atualização.
+        </p>
+        <div class="two-col">
+          <div class="diagram-panel">
+            <p class="diagram-title">Arquitetura ponta a ponta</p>
+            <div class="mermaid">
+flowchart TD
+    U[Usuário no navegador] --> A[App Router Next.js]
+    A --> B[AppProvider e AuthGuard]
+    B --> C[Shell com Sidebar e TopBar]
+    C --> D[Views por módulo]
+    D --> E[Hooks de negócio]
+    E --> F[Supabase Client]
+    F --> G[(Supabase PostgreSQL)]
+
+    D --> D1[DashboardView]
+    D --> D2[OSListView]
+    D --> D3[TimeControlView]
+    D --> D4[WorkersView]
+    D --> D5[WorkScheduleView]
+    D --> D6[EquipmentView]
+    D --> D7[ReportsView]
+    D --> D8[UsersView]
+
+    E --> H[useServiceOrders]
+    E --> I[useTimeEntries]
+    E --> J[useWorkers]
+    E --> K[useEquipments]
+    E --> L[useUsers]
+    E --> M[useWorkSchedules]
+
+    F --> N[supabase-mappers]
+    F --> O[supabase-errors]
+    F --> P[fromPublicTable]
+
+    G --> Q[users]
+    G --> R[workers]
+    G --> S[equipments]
+    G --> T[service_orders]
+    G --> V[time_entries]
+    G --> W[worker_schedules]
+            </div>
+          </div>
+          <aside class="summary">
+            <h3>Resumo executivo</h3>
+            <ul>
+              <li>A aplicação web usa o App Router do Next.js para organizar rotas protegidas e módulos funcionais.</li>
+              <li>O contexto global controla login, hidratação de sessão e usuário corrente por meio de localStorage e validação na tabela users.</li>
+              <li>As telas principais são componentes container que consomem hooks dedicados por domínio.</li>
+              <li>Os hooks concentram leitura, escrita, tratamento de erro, mapeamento de tipos e atualização reativa.</li>
+              <li>O Supabase funciona como gateway de acesso ao PostgreSQL e também fornece canais de realtime para recarga automática.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag">App Router</span>
+              <span class="tag">Context API</span>
+              <span class="tag">CRUD desacoplado</span>
+              <span class="tag">Realtime</span>
+              <span class="tag">Tipagem forte</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>2. Módulos funcionais da aplicação</h2>
+        <p class="lead">
+          Cada rota principal do sistema representa um domínio operacional. A tabela abaixo conecta navegação, componente principal, hooks utilizados e tabelas impactadas.
+        </p>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Rota</th>
+              <th>Módulo</th>
+              <th>Componente principal</th>
+              <th>Hooks dominantes</th>
+              <th>Tabelas mais usadas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/</td>
+              <td>Dashboard</td>
+              <td>DashboardView</td>
+              <td>useServiceOrders, useWorkers, useEquipments, useTimeEntries</td>
+              <td>service_orders, workers, equipments, time_entries</td>
+            </tr>
+            <tr>
+              <td>/ordens</td>
+              <td>Ordens de Serviço</td>
+              <td>OSListView</td>
+              <td>useServiceOrders, useWorkers, useEquipments</td>
+              <td>service_orders, service_order_workers, service_order_parts, service_order_history</td>
+            </tr>
+            <tr>
+              <td>/tempo</td>
+              <td>Controle de Tempo</td>
+              <td>TimeControlView</td>
+              <td>useTimeEntries, useServiceOrders, useWorkers</td>
+              <td>time_entries, service_orders, workers</td>
+            </tr>
+            <tr>
+              <td>/manutentores</td>
+              <td>Equipe técnica</td>
+              <td>WorkersView</td>
+              <td>useWorkers</td>
+              <td>workers</td>
+            </tr>
+            <tr>
+              <td>/escalas</td>
+              <td>Escalas e disponibilidade</td>
+              <td>WorkScheduleView</td>
+              <td>useWorkSchedules, useWorkers</td>
+              <td>worker_schedules, worker_schedule_day_overrides, worker_schedule_cycle_overrides</td>
+            </tr>
+            <tr>
+              <td>/equipamentos</td>
+              <td>Ativos e linhas</td>
+              <td>EquipmentView</td>
+              <td>useEquipments</td>
+              <td>equipments, service_orders</td>
+            </tr>
+            <tr>
+              <td>/relatorios</td>
+              <td>Análises gerenciais</td>
+              <td>ReportsView</td>
+              <td>useServiceOrders, useWorkers, useEquipments, useTimeEntries</td>
+              <td>service_orders, service_order_parts, time_entries, workers, equipments</td>
+            </tr>
+            <tr>
+              <td>/usuarios</td>
+              <td>Administração de acesso</td>
+              <td>UsersView</td>
+              <td>useUsers, useWorkers</td>
+              <td>users, workers</td>
+            </tr>
+            <tr>
+              <td>/configuracoes</td>
+              <td>Parâmetros e preferências</td>
+              <td>SettingsView</td>
+              <td>Contexto e permissões</td>
+              <td>users e regras de acesso</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>3. Fluxo de autenticação, sessão e permissões</h2>
+        <p class="lead">
+          O acesso ao sistema é controlado pelo contexto global da aplicação. A sessão não é persistida pelo módulo de auth do Supabase; em vez disso, o sistema armazena o identificador do usuário em localStorage e revalida esse vínculo a cada carregamento da interface.
+        </p>
+        <div class="grid-wide">
+          <div class="diagram-panel">
+            <p class="diagram-title">Fluxo de login e guarda de rota</p>
+            <div class="mermaid">
+flowchart TD
+    A[Usuário informa e-mail e senha] --> B[LoginForm]
+    B --> C[AppContext.login]
+    C --> D[Consulta tabela users]
+    D --> E{Usuário ativo\n e credencial válida?}
+    E -- Não --> F[Retorna falha e mantém tela de login]
+    E -- Sim --> G[Mapeia UserRow para User]
+    G --> H[Salva user.id em localStorage]
+    H --> I[Atualiza estado global]
+    I --> J[AuthGuard libera Shell e rotas]
+    J --> K[Sidebar filtra páginas por permissão]
+            </div>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <h3>Perfis suportados</h3>
+              <ul>
+                <li>Administrador: acesso total a operações, usuários, relatórios e configurações.</li>
+                <li>Supervisor: foco operacional, sem gestão completa de usuários.</li>
+                <li>Manutentor: atua sobre OS próprias e apontamento de tempo.</li>
+                <li>Operador: mesmo perfil funcional do manutentor, com vínculo à tabela workers.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Controle de acesso</h3>
+              <ul>
+                <li>As rotas exibidas no menu são filtradas por hasPermission.</li>
+                <li>As permissões são centralizadas em lib/permissions.ts.</li>
+                <li>O vínculo user.worker_id limita a visualização de OS e apontamentos próprios.</li>
+                <li>Usuários inativos são bloqueados tanto no login quanto na hidratação da sessão.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>4. Fluxo operacional central do sistema</h2>
+        <p class="lead">
+          O coração do projeto é a gestão de ordens de serviço. Esse processo conecta equipamentos, equipe técnica, histórico, peças consumidas, apontamento de tempo e relatórios gerenciais.
+        </p>
+        <div class="diagram-panel">
+          <p class="diagram-title">Ciclo de vida da ordem de serviço</p>
+          <div class="mermaid">
+flowchart LR
+    A[Abertura da OS] --> B[Cadastro de dados básicos]
+    B --> C[Vínculo com equipamento]
+    C --> D[Definição de prioridade e tipo]
+    D --> E[Atribuição de manutentores]
+    E --> F[Registro em service_order_workers]
+    F --> G[Status Aberta]
+    G --> H[Início do atendimento]
+    H --> I[Status Em andamento]
+    I --> J[Apontamentos em time_entries]
+    I --> K[Registro de peças em service_order_parts]
+    I --> L[Auditoria em service_order_history]
+    J --> M[Indicadores de horas]
+    K --> N[Indicadores de consumo]
+    L --> O[Rastreabilidade]
+    M --> P[Relatórios gerenciais]
+    N --> P
+    O --> P
+    I --> Q{Atividade concluída?}
+    Q -- Não --> J
+    Q -- Sim --> R[Status Finalizada]
+    R --> S[Encerramento com finished_at]
+          </div>
+        </div>
+        <div class="cards" style="margin-top: 18px;">
+          <div class="card">
+            <h3>Como os dados são montados</h3>
+            <p>
+              O hook useServiceOrders busca, em paralelo, service_orders, service_order_workers, service_order_parts,
+              service_order_history e time_entries. Em seguida, compõe um objeto de domínio enriquecido para cada OS.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Valor técnico dessa abordagem</h3>
+            <p>
+              A composição fora do banco simplifica a camada de visualização, preserva tipagem consistente e concentra a regra de negócio em um ponto único da aplicação.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>5. Arquitetura de dados e relacionamento com o banco</h2>
+        <p class="lead">
+          A base Supabase organiza o domínio em torno da tabela service_orders, que funciona como entidade central do processo de manutenção. Usuários, manutentores, equipamentos, apontamentos, peças e escalas se relacionam de forma explícita por chaves estrangeiras.
+        </p>
+        <div class="diagram-panel">
+          <p class="diagram-title">Modelo relacional principal</p>
+          <div class="mermaid">
+erDiagram
+    USERS {
+      uuid id PK
+      text name
+      text email UK
+      text password
+      text role
+      uuid worker_id FK
+      boolean active
+      timestamptz created_at
+    }
+
+    WORKERS {
+      uuid id PK
+      text name
+      text registration UK
+      text role
+      text shift
+      text specialty
+      text status
+      numeric available_hours_per_day
+      timestamptz created_at
+    }
+
+    EQUIPMENTS {
+      uuid id PK
+      text name
+      text code UK
+      text location
+      text production_line
+      timestamptz created_at
+    }
+
+    SERVICE_ORDERS {
+      uuid id PK
+      text number UK
+      text type
+      text priority
+      text status
+      text description
+      uuid equipment_id FK
+      uuid assigned_to FK
+      text sector
+      timestamptz created_at
+      timestamptz started_at
+      timestamptz finished_at
+    }
+
+    SERVICE_ORDER_WORKERS {
+      uuid service_order_id PK, FK
+      uuid worker_id PK, FK
+      timestamptz created_at
+    }
+
+    SERVICE_ORDER_PARTS {
+      uuid id PK
+      uuid service_order_id FK
+      text name
+      integer quantity
+      numeric unit_cost
+      timestamptz created_at
+    }
+
+    SERVICE_ORDER_HISTORY {
+      uuid id PK
+      uuid service_order_id FK
+      timestamptz timestamp
+      text field
+      text old_value
+      text new_value
+      text changed_by
+    }
+
+    TIME_ENTRIES {
+      uuid id PK
+      uuid worker_id FK
+      uuid service_order_id FK
+      text activity_type
+      timestamptz start_time
+      timestamptz end_time
+      integer duration_minutes
+      text notes
+      timestamptz created_at
+    }
+
+    WORKER_SCHEDULES {
+      uuid id PK
+      uuid worker_id FK
+      text registration UK
+      text worker_name
+      text scale_code
+      text scale_name
+      integer cycle_offset
+      text shift_label
+      text notes
+      timestamptz created_at
+      timestamptz updated_at
+    }
+
+    WORKER_SCHEDULE_DAY_OVERRIDES {
+      uuid id PK
+      uuid schedule_id FK
+      date schedule_date
+      text day_status
+      boolean is_overtime
+      timestamptz created_at
+      timestamptz updated_at
+    }
+
+    WORKER_SCHEDULE_CYCLE_OVERRIDES {
+      uuid id PK
+      uuid schedule_id FK
+      integer cycle_position
+      text day_status
+      timestamptz created_at
+      timestamptz updated_at
+    }
+
+    WORKERS ||--o{ USERS : vincula
+    EQUIPMENTS ||--o{ SERVICE_ORDERS : recebe
+    WORKERS ||--o{ SERVICE_ORDERS : assigned_to
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_WORKERS : distribui
+    WORKERS ||--o{ SERVICE_ORDER_WORKERS : participa
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_PARTS : consome
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_HISTORY : registra
+    SERVICE_ORDERS ||--o{ TIME_ENTRIES : mede
+    WORKERS ||--o{ TIME_ENTRIES : aponta
+    WORKERS ||--o| WORKER_SCHEDULES : possui
+    WORKER_SCHEDULES ||--o{ WORKER_SCHEDULE_DAY_OVERRIDES : sobrescreve_dia
+    WORKER_SCHEDULES ||--o{ WORKER_SCHEDULE_CYCLE_OVERRIDES : sobrescreve_ciclo
+          </div>
+        </div>
+        <div class="note">
+          Os relacionamentos foram definidos com regras de integridade coerentes com o domínio: exclusão restrita para equipamentos com OS associadas,
+          exclusão em cascata para vínculos e históricos subordinados, e nullificação controlada em associações opcionais como users.worker_id e service_orders.assigned_to.
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>6. Tabelas, responsabilidades e impacto funcional</h2>
+        <p class="lead">
+          A seguir está o papel técnico de cada tabela e o efeito direto que ela produz na aplicação.
+        </p>
+        <div class="cards">
+          <div class="card">
+            <h3>Autenticação e acesso</h3>
+            <ul>
+              <li>users: guarda credenciais, perfil de acesso, flag de ativo e vínculo opcional com workers.</li>
+              <li>workers: representa o colaborador operacional, sua especialidade, turno e capacidade diária.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Cadastro de ativos</h3>
+            <ul>
+              <li>equipments: cadastro de máquinas, localização e linha produtiva.</li>
+              <li>service_orders: entidade central do processo de manutenção.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Execução operacional</h3>
+            <ul>
+              <li>service_order_workers: resolve o relacionamento N para N entre OS e trabalhadores.</li>
+              <li>time_entries: mede esforço, improdutividade, setup e deslocamento por OS e por manutentor.</li>
+              <li>service_order_parts: controla consumo de peças e subsidia relatórios de custo.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Rastreabilidade e escala</h3>
+            <ul>
+              <li>service_order_history: registra mudanças relevantes de estado e atribuição.</li>
+              <li>worker_schedules: define o ciclo-base da escala do colaborador.</li>
+              <li>worker_schedule_day_overrides e worker_schedule_cycle_overrides: tratam exceções operacionais.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>7. Fluxo técnico entre interface, hooks e Supabase</h2>
+        <p class="lead">
+          O padrão repetido em quase todo o sistema segue uma cadeia previsível: view, hook, mapper, cliente Supabase e tabela de destino. Isso reduz acoplamento entre interface e modelo físico do banco.
+        </p>
+        <div class="two-col">
+          <div class="diagram-panel">
+            <p class="diagram-title">Padrão de execução de um CRUD</p>
+            <div class="mermaid">
+flowchart TD
+    A[Usuário interage com formulário] --> B[View component]
+    B --> C[Hook do domínio]
+    C --> D[Mapper converte entidade para payload SQL]
+    D --> E[fromPublicTable seleciona a tabela]
+    E --> F[Supabase executa select, insert, update ou delete]
+    F --> G[Retorno com data e error]
+    G --> H[Hook traduz erro amigável quando necessário]
+    H --> I[Hook refaz carga ou atualiza estado local]
+    I --> J[Interface renderiza resultado]
+            </div>
+          </div>
+          <div class="summary">
+            <h3>Aspectos arquiteturais relevantes</h3>
+            <ul>
+              <li>Os mappers isolam as diferenças entre nomes de coluna do banco e o shape usado na UI.</li>
+              <li>As views permanecem focadas em estado visual, filtros, formulários e ações do usuário.</li>
+              <li>Os hooks concentram as operações assíncronas e a atualização da coleção em memória.</li>
+              <li>Parte dos domínios usa canais postgres_changes do Supabase para sincronização quase em tempo real.</li>
+              <li>O tratamento de erro usa mensagens amigáveis para violações de unicidade e integridade referencial.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>8. Pontos fortes e observações estruturais</h2>
+        <p class="lead">
+          Além da visão de fluxo, vale destacar alguns comportamentos que influenciam a operação e a evolução futura do sistema.
+        </p>
+        <div class="grid-wide">
+          <div class="card">
+            <h3>Pontos fortes</h3>
+            <ul>
+              <li>Boa separação entre tela, regra de negócio e persistência.</li>
+              <li>Modelo relacional compatível com rastreabilidade operacional.</li>
+              <li>Escalas e exceções suportam cenários reais de manutenção industrial.</li>
+              <li>Permissões por perfil estão centralizadas e legíveis.</li>
+              <li>Relatórios derivam diretamente do dado operacional, sem duplicação de fonte.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Observações técnicas</h3>
+            <ul>
+              <li>O login atual consulta a tabela users diretamente e não usa autenticação gerenciada do Supabase Auth.</li>
+              <li>useServiceOrders faz composição em memória a partir de múltiplas consultas paralelas.</li>
+              <li>A tabela service_orders é o maior hub de dependência do banco.</li>
+              <li>A exclusão de equipamentos é protegida tanto por regra de negócio quanto por integridade referencial.</li>
+              <li>Os relatórios dependem fortemente da qualidade dos apontamentos em time_entries.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">
+        Documento gerado a partir da análise do código-fonte e do schema SQL do projeto Manutenção ITA em 09/04/2026.
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arquitetura Executiva e Técnica - Manutenção ITA</title>
+    <style>
+      :root {
+        --bg: #edf2f5;
+        --surface: #ffffff;
+        --surface-alt: #f5f9fb;
+        --surface-strong: #0f2530;
+        --text: #16212b;
+        --muted: #5b6a75;
+        --line: #d6e1e7;
+        --accent: #0085ca;
+        --accent-strong: #005f92;
+        --accent-soft: #dceffc;
+        --teal: #0c7b93;
+        --ok: #2f855a;
+        --warn: #b7791f;
+        --danger: #c05621;
+        --shadow: 0 18px 42px rgba(16, 24, 40, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--bg);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Calibri, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(0, 133, 202, 0.11), transparent 22%),
+          radial-gradient(circle at top right, rgba(12, 123, 147, 0.1), transparent 18%),
+          linear-gradient(180deg, #f9fbfc 0%, #eef3f6 100%);
+      }
+
+      .page {
+        width: min(1180px, calc(100vw - 48px));
+        margin: 24px auto 48px;
+      }
+
+      .cover {
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        background: linear-gradient(140deg, #0f1720 0%, #10394d 45%, #0085ca 100%);
+        color: #f8fbfc;
+        box-shadow: var(--shadow);
+        padding: 40px 42px 34px;
+      }
+
+      .cover::before {
+        content: "";
+        position: absolute;
+        width: 340px;
+        height: 340px;
+        border-radius: 50%;
+        right: -110px;
+        top: -110px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .cover::after {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        left: -40px;
+        bottom: -90px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-logo {
+        width: 96px;
+        height: auto;
+        filter: drop-shadow(0 12px 24px rgba(15, 23, 32, 0.25));
+        background: rgba(255, 255, 255, 0.94);
+        border-radius: 14px;
+        padding: 10px 14px;
+      }
+
+      .brand-text strong,
+      .brand-text span {
+        display: block;
+      }
+
+      .brand-text strong {
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-text span {
+        font-size: 12px;
+        color: rgba(248, 251, 252, 0.76);
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        opacity: 0.8;
+        margin: 34px 0 10px;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 38px;
+        line-height: 1.05;
+        max-width: 820px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .cover p {
+        max-width: 820px;
+        line-height: 1.65;
+        color: rgba(248, 251, 252, 0.86);
+        position: relative;
+        z-index: 1;
+      }
+
+      .cover-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 18px;
+        margin-top: 22px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .cover-card,
+      .hero-card,
+      .section,
+      .summary,
+      .diagram-panel,
+      .card,
+      .toc {
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+      }
+
+      .cover-card {
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(6px);
+        padding: 18px;
+      }
+
+      .cover-card h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      .cover-card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .cover-card li {
+        line-height: 1.6;
+        color: rgba(248, 251, 252, 0.86);
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .hero-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 14px 16px;
+      }
+
+      .hero-card strong {
+        display: block;
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+
+      .hero-card span {
+        font-size: 12px;
+        color: rgba(248, 251, 252, 0.8);
+      }
+
+      .toc {
+        margin-top: 22px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+        border-radius: 22px;
+        padding: 22px 24px;
+      }
+
+      .toc h2 {
+        margin: 0 0 6px;
+        font-size: 22px;
+      }
+
+      .toc p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+
+      .toc-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 16px;
+      }
+
+      .toc a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        text-decoration: none;
+        color: var(--text);
+        background: var(--surface-alt);
+        border: 1px solid #e5eef3;
+      }
+
+      .toc a:hover {
+        border-color: #b7d7ea;
+        background: #eef7fd;
+      }
+
+      .toc .num {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accent-strong);
+        background: var(--accent-soft);
+      }
+
+      .section {
+        margin-top: 24px;
+        background: var(--surface);
+        border-radius: 22px;
+        padding: 28px;
+      }
+
+      .section h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+
+      .lead {
+        margin: 0 0 22px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 8px;
+      }
+
+      .pill {
+        flex: none;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 22px;
+        align-items: start;
+      }
+
+      .grid-wide {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbfc 100%);
+        border-radius: 18px;
+        padding: 18px;
+      }
+
+      .card h3,
+      .summary h3 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      .card p,
+      .card li,
+      .summary li,
+      .matrix td,
+      .matrix th,
+      .note,
+      .kpi-card p,
+      .kpi-card span {
+        line-height: 1.58;
+      }
+
+      .card ul,
+      .summary ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .summary {
+        background: var(--surface-alt);
+        border-radius: 18px;
+        padding: 18px;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .tag {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .diagram-panel {
+        background: linear-gradient(180deg, #fcfefe 0%, #f6fafb 100%);
+        border-radius: 18px;
+        padding: 12px;
+      }
+
+      .diagram-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+      }
+
+      .matrix th {
+        background: #e9f3fa;
+        color: var(--accent-strong);
+        text-align: left;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .matrix th,
+      .matrix td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      .matrix tr:last-child td {
+        border-bottom: none;
+      }
+
+      .matrix td.center,
+      .matrix th.center {
+        text-align: center;
+      }
+
+      .crud-r {
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
+
+      .crud-w {
+        color: var(--ok);
+        font-weight: 700;
+      }
+
+      .crud-d {
+        color: var(--danger);
+        font-weight: 700;
+      }
+
+      .note {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--teal);
+        background: #f5fbfd;
+        border-radius: 12px;
+      }
+
+      .kpi-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .kpi-card {
+        border-radius: 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #f7fbfd 100%);
+        border: 1px solid var(--line);
+        padding: 18px;
+      }
+
+      .kpi-card strong {
+        display: block;
+        font-size: 28px;
+        color: var(--surface-strong);
+      }
+
+      .kpi-card span {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .mermaid {
+        overflow-x: auto;
+      }
+
+      .footer {
+        margin: 20px 0 12px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .page-break {
+        break-before: page;
+      }
+
+      @media print {
+        html,
+        body {
+          background: #ffffff;
+        }
+
+        .page {
+          width: 100%;
+          margin: 0;
+        }
+
+        .cover,
+        .toc,
+        .section,
+        .diagram-panel,
+        .summary,
+        .card,
+        .kpi-card {
+          box-shadow: none;
+        }
+
+        .cover {
+          min-height: 92vh;
+        }
+
+        .section,
+        .diagram-panel,
+        .card,
+        .summary,
+        .kpi-card,
+        .matrix {
+          break-inside: avoid;
+        }
+      }
+
+      @media (max-width: 920px) {
+        .page {
+          width: min(100vw, calc(100vw - 24px));
+          margin: 12px auto 24px;
+        }
+
+        .cover,
+        .toc,
+        .section {
+          padding: 22px;
+        }
+
+        .cover-grid,
+        .meta-grid,
+        .toc-list,
+        .two-col,
+        .grid-wide,
+        .cards,
+        .kpi-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .brand-row,
+        .section-head {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+          primaryColor: "#dceffc",
+          primaryTextColor: "#16212b",
+          primaryBorderColor: "#0085ca",
+          lineColor: "#5d7480",
+          secondaryColor: "#eef5f9",
+          tertiaryColor: "#ffffff",
+          fontFamily: "Segoe UI, Calibri, sans-serif",
+          background: "#ffffff"
+        },
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis"
+        },
+        sequence: {
+          showSequenceNumbers: false
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="page">
+      <section class="cover">
+        <div class="brand-row">
+          <div class="brand-lockup">
+            <img class="brand-logo" src="../public/pepsico-logo.png" alt="PepsiCo" />
+            <div class="brand-text">
+              <strong>PepsiCo | Manutenção ITA</strong>
+              <span>Arquitetura corporativa, fluxos operacionais e modelo de dados</span>
+            </div>
+          </div>
+          <div class="pill" style="background: rgba(255,255,255,0.14); color: #f8fbfc; border: 1px solid rgba(255,255,255,0.14);">Versão executiva-técnica</div>
+        </div>
+
+        <p class="eyebrow">Documento executivo e técnico</p>
+        <h1>Fluxograma completo do sistema Manutenção ITA com BPMN simplificado, matriz CRUD e relacionamento profissional com a base de dados</h1>
+        <p>
+          Este material foi estruturado para uso gerencial e técnico. Ele apresenta uma visão executiva do sistema,
+          a arquitetura funcional da aplicação, o fluxo de autenticação e permissões, o ciclo de vida das ordens de serviço,
+          o modelo relacional do Supabase/PostgreSQL e um anexo técnico com BPMN simplificado e matriz CRUD por módulo.
+        </p>
+
+        <div class="cover-grid">
+          <div class="cover-card">
+            <h2>Objetivo do documento</h2>
+            <ul>
+              <li>Explicar o sistema de forma clara para gestão, operação e tecnologia.</li>
+              <li>Demonstrar como os módulos se conectam entre si e com o banco de dados.</li>
+              <li>Formalizar a visão de processo para manutenção industrial e controle de execução.</li>
+            </ul>
+          </div>
+          <div class="cover-card">
+            <h2>Escopo analisado</h2>
+            <ul>
+              <li>Aplicação Next.js com App Router.</li>
+              <li>Camada de dados via Supabase JS tipado.</li>
+              <li>Tabelas operacionais, históricas, de escalas e controle de acesso.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="hero-card">
+            <strong>8 módulos</strong>
+            <span>Operação, gestão e administração da manutenção</span>
+          </div>
+          <div class="hero-card">
+            <strong>11 tabelas</strong>
+            <span>Base transacional com integridade referencial explícita</span>
+          </div>
+          <div class="hero-card">
+            <strong>6 hooks centrais</strong>
+            <span>Orquestração de consultas, mutações e sincronização</span>
+          </div>
+          <div class="hero-card">
+            <strong>3 camadas</strong>
+            <span>UI, lógica de domínio e acesso a dados</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="toc page-break">
+        <h2>Sumário executivo</h2>
+        <p>Os tópicos abaixo organizam a leitura para público executivo, funcional e técnico.</p>
+        <div class="toc-list">
+          <a href="#sec1"><span class="num">1</span><span>Visão geral da solução</span></a>
+          <a href="#sec2"><span class="num">2</span><span>Módulos funcionais da aplicação</span></a>
+          <a href="#sec3"><span class="num">3</span><span>Autenticação, sessão e permissões</span></a>
+          <a href="#sec4"><span class="num">4</span><span>Fluxo operacional central das OS</span></a>
+          <a href="#sec5"><span class="num">5</span><span>Arquitetura de dados e relacionamento</span></a>
+          <a href="#sec6"><span class="num">6</span><span>Responsabilidade das tabelas</span></a>
+          <a href="#sec7"><span class="num">7</span><span>Fluxo técnico de CRUD e integração</span></a>
+          <a href="#sec8"><span class="num">8</span><span>BPMN simplificado end to end</span></a>
+          <a href="#sec9"><span class="num">9</span><span>Matriz CRUD por módulo</span></a>
+          <a href="#sec10"><span class="num">10</span><span>Pontos fortes e observações estruturais</span></a>
+        </div>
+      </section>
+
+      <section class="section" id="sec1">
+        <div class="section-head">
+          <h2>1. Visão geral da solução</h2>
+          <span class="pill">Resumo executivo</span>
+        </div>
+        <p class="lead">
+          O sistema Manutenção ITA foi desenhado para centralizar a gestão de ordens de serviço, equipe técnica,
+          escalas, equipamentos, apontamento de horas e relatórios gerenciais. A arquitetura é composta por interface web,
+          contexto de autenticação, hooks especializados por domínio e base relacional Supabase/PostgreSQL.
+        </p>
+        <div class="kpi-strip">
+          <div class="kpi-card">
+            <span>Camada de apresentação</span>
+            <strong>Views</strong>
+            <p>Telas modulares com navegação protegida por perfil.</p>
+          </div>
+          <div class="kpi-card">
+            <span>Camada de domínio</span>
+            <strong>Hooks</strong>
+            <p>Consulta, mutação, composição de dados e sincronização.</p>
+          </div>
+          <div class="kpi-card">
+            <span>Camada de dados</span>
+            <strong>Supabase</strong>
+            <p>Conexão tipada, mapeamento e tratamento de erro.</p>
+          </div>
+          <div class="kpi-card">
+            <span>Banco relacional</span>
+            <strong>PostgreSQL</strong>
+            <p>Integridade de domínio com tabelas centrais e satélites.</p>
+          </div>
+        </div>
+        <div class="two-col" style="margin-top: 18px;">
+          <div class="diagram-panel">
+            <p class="diagram-title">Arquitetura ponta a ponta</p>
+            <div class="mermaid">
+flowchart TD
+    U[Usuário no navegador] --> A[App Router Next.js]
+    A --> B[AppProvider e AuthGuard]
+    B --> C[Shell com Sidebar e TopBar]
+    C --> D[Views por módulo]
+    D --> E[Hooks de domínio]
+    E --> F[Supabase Client]
+    F --> G[(Supabase PostgreSQL)]
+
+    D --> D1[DashboardView]
+    D --> D2[OSListView]
+    D --> D3[TimeControlView]
+    D --> D4[WorkersView]
+    D --> D5[WorkScheduleView]
+    D --> D6[EquipmentView]
+    D --> D7[ReportsView]
+    D --> D8[UsersView]
+
+    E --> H[useServiceOrders]
+    E --> I[useTimeEntries]
+    E --> J[useWorkers]
+    E --> K[useEquipments]
+    E --> L[useUsers]
+    E --> M[useWorkSchedules]
+            </div>
+          </div>
+          <aside class="summary">
+            <h3>Leitura gerencial</h3>
+            <ul>
+              <li>O sistema opera em torno da ordem de serviço como eixo do processo de manutenção.</li>
+              <li>Usuários e perfis determinam quais telas e ações estão disponíveis.</li>
+              <li>Equipamentos, equipe e apontamentos alimentam relatórios e indicadores de produtividade.</li>
+              <li>O modelo técnico privilegia separação clara entre interface, lógica e persistência.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag">Operação</span>
+              <span class="tag">Gestão</span>
+              <span class="tag">Rastreabilidade</span>
+              <span class="tag">Controle de horas</span>
+              <span class="tag">Relatórios</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="sec2">
+        <div class="section-head">
+          <h2>2. Módulos funcionais da aplicação</h2>
+          <span class="pill">Mapa funcional</span>
+        </div>
+        <p class="lead">
+          Cada rota principal representa um domínio de negócio e se conecta a um conjunto específico de tabelas e hooks.
+        </p>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Rota</th>
+              <th>Módulo</th>
+              <th>Componente</th>
+              <th>Hooks</th>
+              <th>Objetivo operacional</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/</td>
+              <td>Dashboard</td>
+              <td>DashboardView</td>
+              <td>useServiceOrders, useWorkers, useEquipments, useTimeEntries</td>
+              <td>Consolidar indicadores de manutenção e situação operacional.</td>
+            </tr>
+            <tr>
+              <td>/ordens</td>
+              <td>Ordens de Serviço</td>
+              <td>OSListView</td>
+              <td>useServiceOrders</td>
+              <td>Criar, acompanhar, atribuir e encerrar ordens de serviço.</td>
+            </tr>
+            <tr>
+              <td>/tempo</td>
+              <td>Controle de Tempo</td>
+              <td>TimeControlView</td>
+              <td>useTimeEntries, useWorkers, useServiceOrders</td>
+              <td>Registrar horas produtivas e improdutivas por atividade.</td>
+            </tr>
+            <tr>
+              <td>/manutentores</td>
+              <td>Equipe técnica</td>
+              <td>WorkersView</td>
+              <td>useWorkers</td>
+              <td>Administrar força de trabalho, turno, especialidade e status.</td>
+            </tr>
+            <tr>
+              <td>/escalas</td>
+              <td>Escalas</td>
+              <td>WorkScheduleView</td>
+              <td>useWorkSchedules, useWorkers</td>
+              <td>Gerenciar ciclos, folgas, exceções por dia e horas extras.</td>
+            </tr>
+            <tr>
+              <td>/equipamentos</td>
+              <td>Equipamentos</td>
+              <td>EquipmentView</td>
+              <td>useEquipments</td>
+              <td>Controlar ativos, localização e linha produtiva.</td>
+            </tr>
+            <tr>
+              <td>/relatorios</td>
+              <td>Relatórios</td>
+              <td>ReportsView</td>
+              <td>useServiceOrders, useWorkers, useEquipments, useTimeEntries</td>
+              <td>Extrair produtividade, horas, consumo e visão gerencial.</td>
+            </tr>
+            <tr>
+              <td>/usuarios</td>
+              <td>Usuários</td>
+              <td>UsersView</td>
+              <td>useUsers, useWorkers</td>
+              <td>Administrar identidades, perfis e vínculos operacionais.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section" id="sec3">
+        <div class="section-head">
+          <h2>3. Fluxo de autenticação, sessão e permissões</h2>
+          <span class="pill">Controle de acesso</span>
+        </div>
+        <p class="lead">
+          A autenticação do projeto é validada pela tabela users. A sessão é reidratada localmente por meio do identificador do usuário salvo no navegador,
+          e o shell da aplicação expõe ou oculta rotas com base na matriz de permissões definida em código.
+        </p>
+        <div class="grid-wide">
+          <div class="diagram-panel">
+            <p class="diagram-title">Fluxo de login e autorização</p>
+            <div class="mermaid">
+flowchart TD
+    A[Usuário informa e-mail e senha] --> B[LoginForm]
+    B --> C[AppContext.login]
+    C --> D[Consulta tabela users]
+    D --> E{Usuário ativo\n e credencial válida?}
+    E -- Não --> F[Permanece no login]
+    E -- Sim --> G[Mapeia UserRow]
+    G --> H[Armazena user.id em localStorage]
+    H --> I[Atualiza AppContext]
+    I --> J[AuthGuard libera acesso]
+    J --> K[Sidebar filtra rotas por hasPermission]
+            </div>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <h3>Perfis suportados</h3>
+              <ul>
+                <li>Administrador com acesso total.</li>
+                <li>Supervisor com gestão operacional ampliada.</li>
+                <li>Manutentor com foco em execução e apontamento.</li>
+                <li>Operador com perfil funcional equivalente ao manutentor.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Impacto no sistema</h3>
+              <ul>
+                <li>Usuários vinculados a workers podem ter visão restrita às próprias OS e apontamentos.</li>
+                <li>Permissões de tela e ação ficam centralizadas e auditáveis no código.</li>
+                <li>Usuários inativos são excluídos do fluxo antes da entrada na aplicação.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sec4">
+        <div class="section-head">
+          <h2>4. Fluxo operacional central do sistema</h2>
+          <span class="pill">Processo principal</span>
+        </div>
+        <p class="lead">
+          A ordem de serviço conecta praticamente todos os demais domínios. Ela nasce vinculada a um equipamento, é priorizada,
+          distribuída para a equipe técnica, recebe apontamentos, histórico e peças, e depois alimenta relatórios gerenciais.
+        </p>
+        <div class="diagram-panel">
+          <p class="diagram-title">Ciclo de vida da ordem de serviço</p>
+          <div class="mermaid">
+flowchart LR
+    A[Abertura da OS] --> B[Cadastro de dados básicos]
+    B --> C[Vínculo com equipamento]
+    C --> D[Definição de tipo e prioridade]
+    D --> E[Atribuição de manutentores]
+    E --> F[Registro em service_order_workers]
+    F --> G[Status Aberta]
+    G --> H[Início da execução]
+    H --> I[Status Em andamento]
+    I --> J[Apontamento em time_entries]
+    I --> K[Registro de peças]
+    I --> L[Registro histórico]
+    J --> M[Indicadores de horas]
+    K --> N[Indicadores de consumo]
+    L --> O[Rastreabilidade]
+    M --> P[Relatórios]
+    N --> P
+    O --> P
+    I --> Q{Atividade concluída?}
+    Q -- Não --> J
+    Q -- Sim --> R[Status Finalizada]
+    R --> S[Grava finished_at]
+          </div>
+        </div>
+        <div class="note">
+          Tecnicamente, o hook useServiceOrders monta a visão consolidada da OS a partir de cinco consultas paralelas:
+          ordens, vínculos de manutenção, peças, histórico e apontamentos de tempo.
+        </div>
+      </section>
+
+      <section class="section" id="sec5">
+        <div class="section-head">
+          <h2>5. Arquitetura de dados e relacionamento com a base</h2>
+          <span class="pill">Modelo relacional</span>
+        </div>
+        <p class="lead">
+          O banco foi desenhado com service_orders como entidade central, cercada por tabelas de apoio para participantes, histórico, consumo e jornada de trabalho.
+        </p>
+        <div class="diagram-panel">
+          <p class="diagram-title">Relacionamentos principais do Supabase/PostgreSQL</p>
+          <div class="mermaid">
+erDiagram
+    USERS {
+      uuid id PK
+      text email UK
+      text role
+      uuid worker_id FK
+      boolean active
+    }
+    WORKERS {
+      uuid id PK
+      text registration UK
+      text status
+      numeric available_hours_per_day
+    }
+    EQUIPMENTS {
+      uuid id PK
+      text code UK
+      text location
+      text production_line
+    }
+    SERVICE_ORDERS {
+      uuid id PK
+      text number UK
+      text type
+      text priority
+      text status
+      uuid equipment_id FK
+      uuid assigned_to FK
+    }
+    SERVICE_ORDER_WORKERS {
+      uuid service_order_id PK, FK
+      uuid worker_id PK, FK
+    }
+    SERVICE_ORDER_PARTS {
+      uuid id PK
+      uuid service_order_id FK
+      integer quantity
+      numeric unit_cost
+    }
+    SERVICE_ORDER_HISTORY {
+      uuid id PK
+      uuid service_order_id FK
+      text field
+      text changed_by
+    }
+    TIME_ENTRIES {
+      uuid id PK
+      uuid worker_id FK
+      uuid service_order_id FK
+      text activity_type
+      integer duration_minutes
+    }
+    WORKER_SCHEDULES {
+      uuid id PK
+      uuid worker_id FK
+      text registration UK
+      text scale_code
+    }
+    WORKER_SCHEDULE_DAY_OVERRIDES {
+      uuid id PK
+      uuid schedule_id FK
+      date schedule_date
+      boolean is_overtime
+    }
+    WORKER_SCHEDULE_CYCLE_OVERRIDES {
+      uuid id PK
+      uuid schedule_id FK
+      integer cycle_position
+    }
+
+    WORKERS ||--o{ USERS : vincula
+    EQUIPMENTS ||--o{ SERVICE_ORDERS : recebe
+    WORKERS ||--o{ SERVICE_ORDERS : assigned_to
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_WORKERS : distribui
+    WORKERS ||--o{ SERVICE_ORDER_WORKERS : participa
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_PARTS : consome
+    SERVICE_ORDERS ||--o{ SERVICE_ORDER_HISTORY : registra
+    SERVICE_ORDERS ||--o{ TIME_ENTRIES : mede
+    WORKERS ||--o{ TIME_ENTRIES : aponta
+    WORKERS ||--o| WORKER_SCHEDULES : possui
+    WORKER_SCHEDULES ||--o{ WORKER_SCHEDULE_DAY_OVERRIDES : sobrescreve_dia
+    WORKER_SCHEDULES ||--o{ WORKER_SCHEDULE_CYCLE_OVERRIDES : sobrescreve_ciclo
+          </div>
+        </div>
+        <div class="note">
+          Há uso consistente de delete cascade em entidades subordinadas, delete restrict em equipamentos vinculados a OS e set null em relações opcionais.
+          Isso reduz inconsistências e reforça a integridade do domínio.
+        </div>
+      </section>
+
+      <section class="section" id="sec6">
+        <div class="section-head">
+          <h2>6. Tabelas, responsabilidades e impacto funcional</h2>
+          <span class="pill">Leitura técnica</span>
+        </div>
+        <p class="lead">
+          A divisão abaixo resume o papel funcional de cada tabela no comportamento do sistema.
+        </p>
+        <div class="cards">
+          <div class="card">
+            <h3>Controle de acesso</h3>
+            <ul>
+              <li>users define identidade, status ativo e perfil de autorização.</li>
+              <li>workers representa a pessoa operacional ligada às execuções.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Ativos e manutenção</h3>
+            <ul>
+              <li>equipments centraliza o cadastro dos ativos industriais.</li>
+              <li>service_orders registra o ciclo da manutenção e seu estado.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Execução e medição</h3>
+            <ul>
+              <li>service_order_workers resolve a distribuição de equipe por OS.</li>
+              <li>time_entries registra esforço por trabalhador e por atividade.</li>
+              <li>service_order_parts controla materiais aplicados em cada atendimento.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Rastreabilidade e disponibilidade</h3>
+            <ul>
+              <li>service_order_history compõe a trilha de auditoria operacional.</li>
+              <li>worker_schedules e overrides modelam a disponibilidade real da equipe.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sec7">
+        <div class="section-head">
+          <h2>7. Fluxo técnico entre interface, hooks e Supabase</h2>
+          <span class="pill">Padrão de integração</span>
+        </div>
+        <p class="lead">
+          O padrão de execução é consistente: a interface aciona o hook, o hook converte dados por mappers, usa o cliente tipado do Supabase,
+          trata erro e recarrega ou recompõe o estado para refletir a operação concluída.
+        </p>
+        <div class="two-col">
+          <div class="diagram-panel">
+            <p class="diagram-title">Cadeia técnica de um CRUD</p>
+            <div class="mermaid">
+flowchart TD
+    A[Formulário ou ação do usuário] --> B[View component]
+    B --> C[Hook do domínio]
+    C --> D[Mapper converte payload]
+    D --> E[fromPublicTable seleciona tabela]
+    E --> F[Supabase executa operação]
+    F --> G[Retorno data e error]
+    G --> H[Hook traduz erro ou confirma sucesso]
+    H --> I[Refetch ou atualização local]
+    I --> J[Re-render da interface]
+            </div>
+          </div>
+          <div class="summary">
+            <h3>Benefícios arquiteturais</h3>
+            <ul>
+              <li>Mappers protegem a interface da nomenclatura física das colunas SQL.</li>
+              <li>Os hooks centralizam regras de domínio e reduzem duplicação entre telas.</li>
+              <li>Mensagens amigáveis são produzidas para unicidade e erro de integridade.</li>
+              <li>Alguns domínios recarregam automaticamente por postgres_changes.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page-break" id="sec8">
+        <div class="section-head">
+          <h2>8. BPMN simplificado do processo end to end</h2>
+          <span class="pill">Anexo técnico</span>
+        </div>
+        <p class="lead">
+          A representação abaixo organiza o processo em raias funcionais, aproximando a leitura BPMN para entendimento operacional do fluxo de manutenção.
+        </p>
+        <div class="diagram-panel">
+          <p class="diagram-title">Fluxo BPMN simplificado em raias</p>
+          <div class="mermaid">
+flowchart LR
+    subgraph S1[Solicitante ou Operação]
+      A1[Detecta falha ou demanda]
+      A2[Solicita abertura da OS]
+    end
+
+    subgraph S2[Supervisor]
+      B1[Valida solicitação]
+      B2[Classifica tipo e prioridade]
+      B3[Designa equipe]
+      B4[Acompanha andamento]
+      B5[Confirma encerramento]
+    end
+
+    subgraph S3[Manutentor ou Operador]
+      C1[Recebe OS]
+      C2[Inicia execução]
+      C3[Aponta tempo]
+      C4[Registra peças e observações]
+      C5[Conclui atividade]
+    end
+
+    subgraph S4[Sistema]
+      D1[Grava service_orders]
+      D2[Grava service_order_workers]
+      D3[Grava time_entries]
+      D4[Grava service_order_parts]
+      D5[Grava service_order_history]
+      D6[Atualiza relatórios]
+    end
+
+    A1 --> A2 --> B1 --> B2 --> B3 --> D1
+    D1 --> D2 --> C1 --> C2 --> D5
+    C2 --> C3 --> D3 --> B4
+    C3 --> C4 --> D4 --> D5
+    B4 --> C5 --> B5 --> D6
+          </div>
+        </div>
+        <div class="note">
+          Embora Mermaid não implemente BPMN nativo completo, a estrutura em raias acima representa de forma profissional os papéis, handoffs e registros sistêmicos do processo.
+        </div>
+      </section>
+
+      <section class="section" id="sec9">
+        <div class="section-head">
+          <h2>9. Matriz CRUD por módulo e tabela</h2>
+          <span class="pill">Governança de dados</span>
+        </div>
+        <p class="lead">
+          A matriz a seguir mostra como cada módulo consome ou altera as principais tabelas do sistema.
+        </p>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Módulo</th>
+              <th class="center">users</th>
+              <th class="center">workers</th>
+              <th class="center">equipments</th>
+              <th class="center">service_orders</th>
+              <th class="center">so_workers</th>
+              <th class="center">so_parts</th>
+              <th class="center">so_history</th>
+              <th class="center">time_entries</th>
+              <th class="center">schedules</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dashboard</td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+            </tr>
+            <tr>
+              <td>Ordens de Serviço</td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-w">C/R/U/D</span></td>
+              <td class="center"><span class="crud-w">C/R/U</span></td>
+              <td class="center"><span class="crud-w">C/R/D</span></td>
+              <td class="center"><span class="crud-w">C/R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"></td>
+            </tr>
+            <tr>
+              <td>Controle de Tempo</td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-w">C/R/U/D</span></td>
+              <td class="center"></td>
+            </tr>
+            <tr>
+              <td>Manutentores</td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-w">C/R/U/D</span></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-r">R</span></td>
+            </tr>
+            <tr>
+              <td>Escalas</td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-w">C/R/U/D</span></td>
+            </tr>
+            <tr>
+              <td>Equipamentos</td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"><span class="crud-w">C/R/U/D</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+            </tr>
+            <tr>
+              <td>Relatórios</td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+            </tr>
+            <tr>
+              <td>Usuários</td>
+              <td class="center"><span class="crud-w">C/R/U/D</span></td>
+              <td class="center"><span class="crud-r">R</span></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+              <td class="center"></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note">
+          Legenda: C cria, R lê, U atualiza e D remove. Em alguns casos o update de relações N para N ocorre por exclusão e recriação dos vínculos internos.
+        </div>
+      </section>
+
+      <section class="section" id="sec10">
+        <div class="section-head">
+          <h2>10. Pontos fortes e observações estruturais</h2>
+          <span class="pill">Conclusão</span>
+        </div>
+        <p class="lead">
+          A solução apresenta boa aderência ao domínio de manutenção industrial e uma base técnica consistente para expansão futura.
+        </p>
+        <div class="grid-wide">
+          <div class="card">
+            <h3>Pontos fortes</h3>
+            <ul>
+              <li>Separação clara entre interface, regra de negócio e persistência.</li>
+              <li>Modelo relacional compatível com rastreabilidade e auditoria.</li>
+              <li>Escalas e exceções contemplam cenários operacionais reais.</li>
+              <li>Relatórios são derivados da base transacional sem redundância estrutural.</li>
+              <li>Permissões por perfil estão centralizadas e facilmente auditáveis.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Observações técnicas</h3>
+            <ul>
+              <li>O login atual depende da tabela users e não do Supabase Auth gerenciado.</li>
+              <li>useServiceOrders concentra composição em memória de múltiplas fontes.</li>
+              <li>service_orders é a principal tabela hub do sistema.</li>
+              <li>A qualidade dos relatórios depende da consistência em time_entries e service_order_parts.</li>
+              <li>A governança de evolução do schema deve preservar compatibilidade com os mappers tipados.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">
+        Documento gerado a partir da análise do código-fonte e do schema SQL do projeto Manutenção ITA em 09/04/2026.
+      </div>
+    </div>
+  </body>
+</html>

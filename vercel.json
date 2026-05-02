@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/teams/day-off-alert",
+      "schedule": "5 3 * * *"
+    }
+  ]
+}
