@@ -1,4 +1,3 @@
-import https from "node:https";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   mapUserRow,
@@ -63,42 +62,29 @@ function requestText(
     timeoutMs?: number;
   }
 ) {
-  return new Promise<{ status: number; text: string }>((resolve, reject) => {
-    const request = https.request(
-      url,
-      {
-        method: init?.method ?? "GET",
-        headers: init?.headers,
-        rejectUnauthorized: !allowInsecureTls(),
-      },
-      (response) => {
-        let responseBody = "";
+  const controller = new AbortController();
+  const timeoutMs = init?.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
+  const timeoutHandle = setTimeout(() => {
+    controller.abort(new Error(`Tempo limite excedido ao acessar ${url}.`));
+  }, timeoutMs);
 
-        response.setEncoding("utf8");
-        response.on("data", (chunk) => {
-          responseBody += chunk;
-        });
-        response.on("end", () => {
-          resolve({
-            status: response.statusCode ?? 500,
-            text: responseBody,
-          });
-        });
-      }
-    );
+  if (allowInsecureTls()) {
+    console.warn("[teams-day-off-alert] ALERTS_ALLOW_INSECURE_TLS foi ignorado no runtime atual.");
+  }
 
-    request.setTimeout(init?.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS, () => {
-      request.destroy(new Error(`Tempo limite excedido ao acessar ${url}.`));
+  return fetch(url, {
+    method: init?.method ?? "GET",
+    headers: init?.headers,
+    body: init?.body,
+    signal: controller.signal,
+  })
+    .then(async (response) => ({
+      status: response.status,
+      text: await response.text(),
+    }))
+    .finally(() => {
+      clearTimeout(timeoutHandle);
     });
-
-    request.on("error", reject);
-
-    if (init?.body) {
-      request.write(init.body);
-    }
-
-    request.end();
-  });
 }
 
 function sleep(delayMs: number) {
