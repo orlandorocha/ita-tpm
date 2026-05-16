@@ -495,52 +495,57 @@ export function OSListView({
   const [showForm, setShowForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
   const [editingOrder, setEditingOrder] = useState<ServiceOrder | undefined>();
+  const [initialActionMessage, setInitialActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const userRole = state.currentUser?.role;
     const canCreate = hasPermission(userRole, "os:create");
     const canEdit = hasPermission(userRole, "os:edit");
-    if ((initialEquipmentId || initialOrderId) && !showForm && !selectedOrder && equipments.length > 0) {
-      const openOrderById = initialOrderId
-        ? serviceOrders.find((order) => order.id === initialOrderId)
-        : undefined;
 
-      if (openOrderById) {
-        if (canEdit) {
-          setEditingOrder(openOrderById);
-          setShowForm(true);
-          return;
-        }
-        setSelectedOrder(openOrderById);
-        return;
-      }
+    if ((!initialEquipmentId && !initialOrderId) || showForm || selectedOrder || equipments.length === 0) {
+      return;
+    }
 
-      if (initialAction === "register" && initialEquipmentId && canCreate) {
-        setEditingOrder(undefined);
+    const openOrderById = initialOrderId
+      ? serviceOrders.find((order) => order.id === initialOrderId)
+      : undefined;
+
+    if (openOrderById) {
+      if (canEdit) {
+        setEditingOrder(openOrderById);
         setShowForm(true);
-        return;
+        setInitialActionMessage("OS existente carregada para edição.");
+      } else {
+        setSelectedOrder(openOrderById);
+        setInitialActionMessage("OS existente carregada para visualização.");
       }
+      return;
+    }
 
-      if (initialEquipmentId) {
-        const relatedOrder = serviceOrders
+    const relatedOrders = initialEquipmentId
+      ? serviceOrders
           .filter((order) => order.equipmentId === initialEquipmentId)
-          .sort((left, right) => new Date(right.openedAt).getTime() - new Date(left.openedAt).getTime())[0];
+          .sort((left, right) => new Date(right.openedAt).getTime() - new Date(left.openedAt).getTime())
+      : [];
 
-        if (relatedOrder) {
-          if (canEdit) {
-            setEditingOrder(relatedOrder);
-            setShowForm(true);
-            return;
-          }
-          setSelectedOrder(relatedOrder);
-          return;
-        }
-
-        if (canCreate) {
-          setEditingOrder(undefined);
-          setShowForm(true);
-        }
+    if (relatedOrders.length > 0) {
+      const relatedOrder = relatedOrders[0];
+      if (canEdit) {
+        setEditingOrder(relatedOrder);
+        setShowForm(true);
+        setInitialActionMessage("OS existente do equipamento carregada para edição.");
+      } else {
+        setSelectedOrder(relatedOrder);
+        setInitialActionMessage("OS existente do equipamento carregada para visualização.");
       }
+      return;
+    }
+
+    if (initialEquipmentId && initialAction === "register" && canCreate) {
+      setEditingOrder(undefined);
+      setShowForm(true);
+      setInitialActionMessage("Criar nova OS para este equipamento.");
+      return;
     }
   }, [initialAction, initialEquipmentId, initialOrderId, equipments.length, selectedOrder, serviceOrders, showForm, state.currentUser?.role]);
 
@@ -550,31 +555,6 @@ export function OSListView({
   const canEdit = hasPermission(userRole, "os:edit");
   const canDelete = hasPermission(userRole, "os:delete");
   const canViewAll = hasPermission(userRole, "os:view");
-
-  useEffect(() => {
-    if (!initialEquipmentId || showForm || selectedOrder || equipments.length === 0) {
-      return;
-    }
-
-    const relatedOrder = serviceOrders
-      .filter((order) => order.equipmentId === initialEquipmentId)
-      .sort((left, right) => new Date(right.openedAt).getTime() - new Date(left.openedAt).getTime())[0];
-
-    if (relatedOrder) {
-      if (canEdit) {
-        setEditingOrder(relatedOrder);
-        setShowForm(true);
-      } else {
-        setSelectedOrder(relatedOrder);
-      }
-      return;
-    }
-
-    if (canCreate) {
-      setEditingOrder(undefined);
-      setShowForm(true);
-    }
-  }, [initialEquipmentId, equipments.length, selectedOrder, serviceOrders, showForm, canCreate, canEdit]);
 
   const baseOrders = canViewAll
     ? serviceOrders
@@ -652,6 +632,12 @@ export function OSListView({
         </div>
       )}
 
+      {initialActionMessage && (
+        <div className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
+          {initialActionMessage}
+        </div>
+      )}
+
       {overdueCount > 0 && (
         <div className="rounded-lg border border-status-danger/30 bg-status-danger/10 px-4 py-3 text-sm text-status-danger">
           {overdueCount} OS com prazo vencido aguardando ação. O sistema marca essas ordens automaticamente como Atrasada.
@@ -721,6 +707,7 @@ export function OSListView({
           onClose={() => {
             setShowForm(false);
             setEditingOrder(undefined);
+            setInitialActionMessage(null);
           }}
         />
       )}
@@ -728,7 +715,10 @@ export function OSListView({
         <OrderDetailsModal
           order={selectedOrder}
           onSaved={refreshSelectedOrder}
-          onClose={() => setSelectedOrder(null)}
+          onClose={() => {
+            setSelectedOrder(null);
+            setInitialActionMessage(null);
+          }}
         />
       )}
       {error && <div className="text-sm text-destructive">{error}</div>}
