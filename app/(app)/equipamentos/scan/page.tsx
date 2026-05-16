@@ -151,42 +151,45 @@ export default function EquipmentQrScanPage() {
           <div className="rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">
             <p className="font-medium text-foreground mb-2">Resultado</p>
             {scanResult ? (
-                <div className="space-y-3">
-                  {scanInfo ? (
-                    <>
-                      <div className="space-y-2">
-                        {scanInfo.url ? (
-                          <a href={scanInfo.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:underline">
-                            <ArrowRight className="w-4 h-4" /> Abrir equipamento
-                          </a>
-                        ) : scanInfo.equipmentId ? (
-                          <Link href={`/equipamentos/${scanInfo.equipmentId}`} className="inline-flex items-center gap-2 text-primary hover:underline">
-                            <ArrowRight className="w-4 h-4" /> Abrir equipamento
-                          </Link>
-                        ) : null}
+              <div className="space-y-3">
+                {scanInfo ? (
+                  <>
+                    <div className="space-y-2">
+                      {scanInfo.url ? (
+                        <a href={scanInfo.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-primary hover:underline">
+                          <ArrowRight className="w-4 h-4" /> Abrir equipamento
+                        </a>
+                      ) : scanInfo.equipmentId ? (
+                        <Link href={`/equipamentos/${scanInfo.equipmentId}`} className="inline-flex items-center gap-2 text-primary hover:underline">
+                          <ArrowRight className="w-4 h-4" /> Abrir equipamento
+                        </Link>
+                      ) : null}
 
-                        {scanInfo.equipmentId ? (
-                          <Link href={`/ordens?equipmentId=${scanInfo.equipmentId}`} className="inline-flex items-center gap-2 text-primary hover:underline">
-                            <Wrench className="w-4 h-4" /> Registrar manutenção
-                          </Link>
-                        ) : null}
-                      </div>
+                      {scanInfo.equipmentId ? (
+                        <Link href={`/ordens?equipmentId=${scanInfo.equipmentId}&action=register`} className="inline-flex items-center gap-2 text-primary hover:underline">
+                          <Wrench className="w-4 h-4" /> Registrar manutenção
+                        </Link>
+                      ) : null}
+                    </div>
 
-                      <div className="rounded-lg bg-surface p-3 text-xs text-muted-foreground space-y-2">
-                        <div className="flex justify-between gap-2"><span className="font-medium">ID</span><span>{scanInfo.equipmentId ?? "-"}</span></div>
-                        <div className="flex justify-between gap-2"><span className="font-medium">Tag</span><span>{scanInfo.tag ?? "-"}</span></div>
-                        <div className="flex justify-between gap-2"><span className="font-medium">Setor</span><span>{scanInfo.setor ?? "-"}</span></div>
-                        <div className="flex justify-between gap-2"><span className="font-medium">Linha</span><span>{scanInfo.linha ?? "-"}</span></div>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-sm text-foreground">QR Code lido, mas o conteúdo não corresponde ao formato esperado.</p>
-                  )}
+                    <div className="rounded-lg bg-surface p-3 text-xs text-muted-foreground space-y-2">
+                      <div className="flex justify-between gap-2"><span className="font-medium">ID</span><span>{scanInfo.equipmentId ?? "-"}</span></div>
+                      <div className="flex justify-between gap-2"><span className="font-medium">Tag</span><span>{scanInfo.tag ?? "-"}</span></div>
+                      <div className="flex justify-between gap-2"><span className="font-medium">Setor</span><span>{scanInfo.setor ?? "-"}</span></div>
+                      <div className="flex justify-between gap-2"><span className="font-medium">Linha</span><span>{scanInfo.linha ?? "-"}</span></div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-foreground">QR Code lido, mas o conteúdo não corresponde ao formato esperado.</p>
+                )}
 
-                  <details className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
-                    <summary className="cursor-pointer">Mostrar JSON bruto</summary>
-                    <pre className="mt-2 break-words text-[10px] text-foreground/80">{scanResult}</pre>
-                  </details>
+                <details className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
+                  <summary className="cursor-pointer">Mostrar JSON bruto</summary>
+                  <pre className="mt-2 break-words text-[10px] text-foreground/80">{scanResult}</pre>
+                </details>
+              </div>
+            ) : (
+              <p>Nenhum QR Code lido ainda.</p>
             )}
           </div>
 

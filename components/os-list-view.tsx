@@ -475,7 +475,15 @@ function OrderDetailsModal({
   );
 }
 
-export function OSListView({ initialEquipmentId }: { initialEquipmentId?: string }) {
+export function OSListView({
+  initialEquipmentId,
+  initialAction,
+  initialOrderId,
+}: {
+  initialEquipmentId?: string;
+  initialAction?: string;
+  initialOrderId?: string;
+}) {
   const { state } = useApp();
   const { serviceOrders, remove, getAll, loading, error } = useServiceOrders();
   const { equipments } = useEquipments();
@@ -489,11 +497,52 @@ export function OSListView({ initialEquipmentId }: { initialEquipmentId?: string
   const [editingOrder, setEditingOrder] = useState<ServiceOrder | undefined>();
 
   useEffect(() => {
-    if (initialEquipmentId && !showForm && equipments.length > 0 && hasPermission(state.currentUser?.role, "os:create")) {
-      setEditingOrder(undefined);
-      setShowForm(true);
+    const userRole = state.currentUser?.role;
+    const canCreate = hasPermission(userRole, "os:create");
+    const canEdit = hasPermission(userRole, "os:edit");
+    if ((initialEquipmentId || initialOrderId) && !showForm && !selectedOrder && equipments.length > 0) {
+      const openOrderById = initialOrderId
+        ? serviceOrders.find((order) => order.id === initialOrderId)
+        : undefined;
+
+      if (openOrderById) {
+        if (canEdit) {
+          setEditingOrder(openOrderById);
+          setShowForm(true);
+          return;
+        }
+        setSelectedOrder(openOrderById);
+        return;
+      }
+
+      if (initialAction === "register" && initialEquipmentId && canCreate) {
+        setEditingOrder(undefined);
+        setShowForm(true);
+        return;
+      }
+
+      if (initialEquipmentId) {
+        const relatedOrder = serviceOrders
+          .filter((order) => order.equipmentId === initialEquipmentId)
+          .sort((left, right) => new Date(right.openedAt).getTime() - new Date(left.openedAt).getTime())[0];
+
+        if (relatedOrder) {
+          if (canEdit) {
+            setEditingOrder(relatedOrder);
+            setShowForm(true);
+            return;
+          }
+          setSelectedOrder(relatedOrder);
+          return;
+        }
+
+        if (canCreate) {
+          setEditingOrder(undefined);
+          setShowForm(true);
+        }
+      }
     }
-  }, [initialEquipmentId, equipments.length, showForm, state.currentUser?.role]);
+  }, [initialAction, initialEquipmentId, initialOrderId, equipments.length, selectedOrder, serviceOrders, showForm, state.currentUser?.role]);
 
   const userRole = state.currentUser?.role;
   const linkedWorkerId = resolveCurrentUserWorkerId(state.currentUser, workers);

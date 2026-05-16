@@ -63,7 +63,7 @@ export default function EquipmentDetailsClient({ equipmentId }: EquipmentDetails
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Link
-            href={`/ordens?equipmentId=${equipment.id}`}
+            href={`/ordens?equipmentId=${equipment.id}&action=register`}
             className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
           >
             <Wrench className="w-4 h-4" /> Registrar OS
