@@ -1,0 +1,21 @@
+{
+  "name": "Manutenção ITA",
+  "short_name": "ITA-TPM",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#248B9A",
+  "description": "Aplicação de manutenção industrial com auditoria, ordens de serviço e suporte offline.",
+  "icons": [
+    {
+      "src": "/pepsico-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pepsico-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

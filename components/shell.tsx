@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import {
   BarChart3,
   CalendarDays,
+  Camera,
   ChevronRight,
   ClipboardList,
   LayoutDashboard,
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { href: "/manutentores", label: "Manutentores", icon: Users, permission: "workers:view" },
   { href: "/escalas", label: "Escalas", icon: CalendarDays, permission: "workers:view" },
   { href: "/equipamentos", label: "Equipamentos", icon: Wrench, permission: "equipment:view" },
+  { href: "/equipamentos/scan", label: "Leitor QR", icon: Camera, permission: "equipment:view" },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3, permission: "reports:view" },
   { href: "/usuarios", label: "Usuários", icon: UserCog, permission: "users:view" },
   { href: "/configuracoes", label: "Configurações", icon: Settings },

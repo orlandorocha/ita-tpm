@@ -54,21 +54,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return null;
     }
 
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", userId)
-      .eq("active", true)
-      .single();
+    try {
+      // Add timeout to prevent infinite loading (2 seconds max)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), 2000)
+      );
 
-    if (error || !data) {
-      setCurrentUser(null);
+      const fetchPromise = supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .eq("active", true)
+        .single();
+
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+      if (error || !data) {
+        setCurrentUser(null);
+        return null;
+      }
+
+      const mappedUser = mapUserRow(data);
+      setCurrentUser(mappedUser);
+      return mappedUser;
+    } catch (err) {
+      // If any error occurs (including timeout), reset hydration state
+      setState({ currentUser: null, isAuthenticated: false, isHydrating: false });
       return null;
     }
-
-    const mappedUser = mapUserRow(data);
-    setCurrentUser(mappedUser);
-    return mappedUser;
   }, [setCurrentUser]);
 
   const login = useCallback(
@@ -96,8 +109,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [setCurrentUser]);
 
   useEffect(() => {
-    void refreshCurrentUser();
-  }, [refreshCurrentUser]);
+    // Only run on mount to avoid infinite loops
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      const userId =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem(SESSION_STORAGE_KEY)
+          : null;
+
+      if (!userId) {
+        if (isMounted) {
+          setState({ currentUser: null, isAuthenticated: false, isHydrating: false });
+        }
+        return;
+      }
+
+      try {
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 2000)
+        );
+
+        const fetchPromise = supabase
+          .from("users")
+          .select("*")
+          .eq("id", userId)
+          .eq("active", true)
+          .single();
+
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+        if (isMounted) {
+          if (error || !data) {
+            setState({ currentUser: null, isAuthenticated: false, isHydrating: false });
+          } else {
+            const mappedUser = mapUserRow(data);
+            setState({
+              currentUser: mappedUser,
+              isAuthenticated: true,
+              isHydrating: false,
+            });
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setState({ currentUser: null, isAuthenticated: false, isHydrating: false });
+        }
+      }
+    };
+
+    void initializeAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const value: AppContextValue = {
     state,

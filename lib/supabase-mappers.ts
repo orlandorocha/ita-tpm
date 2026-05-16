@@ -13,6 +13,8 @@ import type {
   TimeEntry,
   TimeEntryInput,
   TimeEntryRow,
+  AuditLogEntry,
+  AuditLogRow,
   User,
   UserInput,
   UserRow,
@@ -146,6 +148,20 @@ export function mapHistoryRow(row: ServiceOrderHistoryRow): OSHistoryEntry {
     oldValue: row.old_value,
     newValue: row.new_value,
     changedBy: row.changed_by,
+  };
+}
+
+export function mapAuditLogRow(row: AuditLogRow): AuditLogEntry {
+  return {
+    id: row.id,
+    timestamp: row.timestamp,
+    resource: row.resource,
+    resourceId: row.resource_id,
+    action: row.action,
+    userId: row.user_id ?? undefined,
+    userName: row.user_name,
+    details: row.details ?? undefined,
+    metadata: row.metadata ?? undefined,
   };
 }
 

@@ -3,6 +3,7 @@ import { getFriendlyMutationError } from "../lib/supabase-errors";
 import { isServiceOrderOverdue } from "../lib/format";
 import { mapServiceOrderRecord, normalizeServiceOrderNumber, toServiceOrderInsert } from "../lib/supabase-mappers";
 import { fromPublicTable, supabase } from "../lib/supabaseClient";
+import { recordAuditLog } from "../lib/audit";
 import type {
   OSStatus,
   Part,
@@ -187,7 +188,25 @@ export function useServiceOrders() {
         );
       }
 
+      await recordHistory(createdOrder.id, "created", "", "Ordem criada", changedBy);
       await recordHistory(createdOrder.id, "status", "", order.status, changedBy);
+
+      await recordAuditLog({
+        resource: "service_orders",
+        resourceId: createdOrder.id,
+        action: "created",
+        category: "operational",
+        userName: changedBy,
+        details: `OS ${createdOrder.number} criada com status ${order.status}.`,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          equipmentId: order.equipmentId,
+          sector: order.sector,
+          assignedTo: workerIds.join(", "),
+          priority: order.priority,
+        },
+      });
+
       await getAll();
       return createdOrder.id;
     },
@@ -259,8 +278,57 @@ export function useServiceOrders() {
         }
       }
 
-      if (updates.status && updates.status !== current.status) {
-        await recordHistory(id, "status", current.status, updates.status, changedBy);
+      const changeList = [
+        { field: "number", oldValue: current.number, newValue: updates.number },
+        { field: "type", oldValue: current.type, newValue: updates.type },
+        { field: "priority", oldValue: current.priority, newValue: updates.priority },
+        { field: "status", oldValue: current.status, newValue: updates.status },
+        { field: "due_date", oldValue: current.dueDate ?? "", newValue: updates.dueDate ?? "" },
+        { field: "description", oldValue: current.description, newValue: updates.description },
+        { field: "equipment_id", oldValue: current.equipmentId, newValue: updates.equipmentId },
+        { field: "assigned_to", oldValue: current.assignedTo ?? "", newValue: updates.assignedTo ?? "" },
+        { field: "sector", oldValue: current.sector, newValue: updates.sector },
+      ].filter(
+        (change) =>
+          change.newValue !== undefined &&
+          String(change.newValue) !== String(change.oldValue)
+      );
+
+      await Promise.all(
+        changeList.map((change) =>
+          recordHistory(
+            id,
+            change.field,
+            String(change.oldValue ?? ""),
+            String(change.newValue ?? ""),
+            changedBy
+          )
+        )
+      );
+
+      if (updates.workerIds) {
+        const previousWorkers = current.workerIds.join(", ");
+        const newWorkers = Array.from(new Set(updates.workerIds)).join(", ");
+        if (previousWorkers !== newWorkers) {
+          await recordHistory(id, "assigned_to", previousWorkers, newWorkers, changedBy);
+        }
+      }
+
+      if (changeList.length > 0) {
+        await recordAuditLog({
+          resource: "service_orders",
+          resourceId: id,
+          action: "updated",
+          category: "operational",
+          userName: changedBy,
+          details: `OS ${current.number} atualizada (${changeList
+            .map((change) => change.field)
+            .join(", ")}).`,
+          timestamp: new Date().toISOString(),
+          metadata: {
+            changes: changeList,
+          },
+        });
       }
 
       await getAll();
@@ -270,9 +338,20 @@ export function useServiceOrders() {
   );
 
   const remove = useCallback(
-    async (id: string) => {
+    async (id: string, removedBy = "Sistema") => {
       setLoading(true);
       setError(null);
+
+      await recordAuditLog({
+        resource: "service_orders",
+        resourceId: id,
+        action: "deleted",
+        category: "operational",
+        userName: removedBy,
+        details: `OS ${id} removida do sistema.`,
+        timestamp: new Date().toISOString(),
+        metadata: {},
+      });
 
       const { error: mutationError } = await fromPublicTable("service_orders")
         .delete()
@@ -327,7 +406,7 @@ export function useServiceOrders() {
         uniqueWorkerIds.join(", "),
         changedBy
       );
-      return update(
+      const result = await update(
         id,
         {
           assignedTo: uniqueWorkerIds[0],
@@ -336,12 +415,25 @@ export function useServiceOrders() {
         },
         changedBy
       );
+
+      await recordAuditLog({
+        resource: "service_orders",
+        resourceId: id,
+        action: "assigned_workers",
+        category: "operational",
+        userName: changedBy,
+        details: `Técnicos atualizados: ${uniqueWorkerIds.join(", ")}.`,
+        timestamp: new Date().toISOString(),
+        metadata: { workerIds: uniqueWorkerIds },
+      });
+
+      return result;
     },
     [getById, update]
   );
 
   const addPart = useCallback(
-    async (serviceOrderId: string, part: Omit<Part, "id">) => {
+    async (serviceOrderId: string, part: Omit<Part, "id">, changedBy = "Sistema") => {
       setLoading(true);
       setError(null);
 
@@ -358,6 +450,22 @@ export function useServiceOrders() {
         return false;
       }
 
+      await recordHistory(serviceOrderId, "parts", "", `${part.quantity}x ${part.name}`, changedBy);
+      await recordAuditLog({
+        resource: "service_orders",
+        resourceId: serviceOrderId,
+        action: "part_added",
+        category: "operational",
+        userName: changedBy,
+        details: `Peça adicionada: ${part.quantity}x ${part.name}.`,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          partName: part.name,
+          quantity: part.quantity,
+          unitCost: part.unitCost,
+        },
+      });
+
       await getAll();
       return true;
     },
@@ -365,9 +473,12 @@ export function useServiceOrders() {
   );
 
   const removePart = useCallback(
-    async (partId: string) => {
+    async (partId: string, removedBy = "Sistema") => {
       setLoading(true);
       setError(null);
+
+      const orderWithPart = serviceOrders.find((order) => order.parts.some((part) => part.id === partId));
+      const part = orderWithPart?.parts.find((part) => part.id === partId);
 
       const { error: mutationError } = await fromPublicTable("service_order_parts")
         .delete()
@@ -379,10 +490,27 @@ export function useServiceOrders() {
         return false;
       }
 
+      if (orderWithPart && part) {
+        await recordHistory(orderWithPart.id, "parts", `${part.quantity}x ${part.name}`, "", removedBy);
+        await recordAuditLog({
+          resource: "service_orders",
+          resourceId: orderWithPart.id,
+          action: "part_removed",
+          category: "operational",
+          userName: removedBy,
+          details: `Peça removida: ${part.quantity}x ${part.name}.`,
+          timestamp: new Date().toISOString(),
+          metadata: {
+            partName: part.name,
+            quantity: part.quantity,
+          },
+        });
+      }
+
       await getAll();
       return true;
     },
-    [getAll]
+    [getAll, serviceOrders]
   );
 
   useEffect(() => {

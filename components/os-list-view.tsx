@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useServiceOrders } from "@/hooks/useServiceOrders";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
@@ -39,10 +39,12 @@ function getSectorFromEquipment(equipment?: { location: string; productionLine: 
 
 function OrderFormModal({
   order,
+  initialEquipmentId,
   onSaved,
   onClose,
 }: {
   order?: ServiceOrder;
+  initialEquipmentId?: string;
   onSaved: () => Promise<unknown>;
   onClose: () => void;
 }) {
@@ -57,13 +59,26 @@ function OrderFormModal({
     type: order?.type ?? ("Corretiva" as OSType),
     priority: order?.priority ?? ("Média" as OSPriority),
     dueDate: order?.dueDate ?? "",
-    equipmentId: order?.equipmentId ?? "",
+    equipmentId: order?.equipmentId ?? initialEquipmentId ?? "",
     sector: order?.sector ?? "",
     description: order?.description ?? "",
     status: order?.status ?? ("Aberta" as OSStatus),
     workerIds: order?.workerIds ?? ([] as string[]),
   });
   const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!order && initialEquipmentId && form.equipmentId === "" && equipments.length > 0) {
+      const selectedEquipment = equipments.find((equipment) => equipment.id === initialEquipmentId);
+      if (selectedEquipment) {
+        setForm((previous) => ({
+          ...previous,
+          equipmentId: selectedEquipment.id,
+          sector: getSectorFromEquipment(selectedEquipment),
+        }));
+      }
+    }
+  }, [order, initialEquipmentId, equipments, form.equipmentId]);
 
   function handleEquipmentChange(equipmentId: string) {
     const selectedEquipment = equipments.find((equipment) => equipment.id === equipmentId);
@@ -460,7 +475,7 @@ function OrderDetailsModal({
   );
 }
 
-export function OSListView() {
+export function OSListView({ initialEquipmentId }: { initialEquipmentId?: string }) {
   const { state } = useApp();
   const { serviceOrders, remove, getAll, loading, error } = useServiceOrders();
   const { equipments } = useEquipments();
@@ -472,6 +487,13 @@ export function OSListView() {
   const [showForm, setShowForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
   const [editingOrder, setEditingOrder] = useState<ServiceOrder | undefined>();
+
+  useEffect(() => {
+    if (initialEquipmentId && !showForm && equipments.length > 0 && hasPermission(state.currentUser?.role, "os:create")) {
+      setEditingOrder(undefined);
+      setShowForm(true);
+    }
+  }, [initialEquipmentId, equipments.length, showForm, state.currentUser?.role]);
 
   const userRole = state.currentUser?.role;
   const linkedWorkerId = resolveCurrentUserWorkerId(state.currentUser, workers);
@@ -620,6 +642,7 @@ export function OSListView() {
       {showForm && (
         <OrderFormModal
           order={editingOrder}
+          initialEquipmentId={initialEquipmentId}
           onSaved={getAll}
           onClose={() => {
             setShowForm(false);

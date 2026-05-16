@@ -5,6 +5,7 @@ import { useEquipments } from "@/hooks/useEquipments";
 import { useServiceOrders } from "@/hooks/useServiceOrders";
 import { useTimeEntries } from "@/hooks/useTimeEntries";
 import { useWorkers } from "@/hooks/useWorkers";
+import { useAuditLogs } from "@/hooks/useAuditLogs";
 import { useApp } from "@/lib/app-context";
 import { formatDate, formatHours } from "@/lib/format";
 import { hasPermission } from "@/lib/permissions";
@@ -19,7 +20,7 @@ import {
 } from "recharts";
 import { Download, Filter } from "lucide-react";
 
-type ReportTab = "horas" | "manutentor" | "equipamento" | "custos";
+type ReportTab = "horas" | "manutentor" | "equipamento" | "custos" | "auditoria";
 
 const CHART_TOOLTIP_STYLE = {
   backgroundColor: "var(--color-card)",
@@ -52,6 +53,7 @@ export function ReportsView() {
   const { workers } = useWorkers();
   const { equipments } = useEquipments();
   const { timeEntries } = useTimeEntries();
+  const { auditLogs, loading: auditLoading } = useAuditLogs();
 
   const [activeTab, setActiveTab] = useState<ReportTab>("horas");
   const [startDate, setStartDate] = useState("");
@@ -173,11 +175,13 @@ export function ReportsView() {
   }
 
   const canViewCosts = hasPermission(state.currentUser?.role, "reports:costs");
+  const canViewAudit = hasPermission(state.currentUser?.role, "reports:view");
   const tabs = [
     { id: "horas" as const, label: "Horas por Período" },
     { id: "manutentor" as const, label: "Por Manutentor" },
     { id: "equipamento" as const, label: "Por Equipamento" },
     ...(canViewCosts ? [{ id: "custos" as const, label: "Peças e Horas" }] : []),
+    ...(canViewAudit ? [{ id: "auditoria" as const, label: "Auditoria" }] : []),
   ];
 
   return (
@@ -359,6 +363,57 @@ export function ReportsView() {
                     <td className="px-5 py-3 text-foreground">{formatHours(resource.laborHours)}</td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "auditoria" && canViewAudit && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {[
+              { label: "Eventos de Auditoria", value: auditLogs.length },
+              { label: "OS Auditadas", value: new Set(auditLogs.map((entry) => entry.resourceId)).size },
+              { label: "Último Evento", value: auditLogs[0] ? formatDate(auditLogs[0].timestamp) : "—" },
+              { label: "Traceabilidade", value: "Logs imutáveis" },
+            ].map((kpi) => (
+              <div key={kpi.label} className="bg-card border border-border rounded-lg p-4">
+                <p className="text-muted-foreground text-xs">{kpi.label}</p>
+                <p className="text-foreground text-xl font-bold mt-1">{kpi.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-card border border-border rounded-lg overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  {['Recurso', 'Ação', 'Usuário', 'Detalhes', 'Data'].map((header) => (
+                    <th key={header} className="text-left text-xs text-muted-foreground font-medium px-5 py-3">{header}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {auditLoading ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">Carregando auditoria...</td>
+                  </tr>
+                ) : auditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">Nenhum evento de auditoria encontrado.</td>
+                  </tr>
+                ) : (
+                  auditLogs.map((entry) => (
+                    <tr key={entry.id} className="border-b border-border/40 hover:bg-muted/20">
+                      <td className="px-5 py-3 text-foreground font-medium">{entry.resource}</td>
+                      <td className="px-5 py-3 text-foreground">{entry.action}</td>
+                      <td className="px-5 py-3 text-foreground">{entry.userName}</td>
+                      <td className="px-5 py-3 text-muted-foreground max-w-xl truncate">{entry.details ?? (entry.metadata ? JSON.stringify(entry.metadata) : "—")}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{formatDate(entry.timestamp)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

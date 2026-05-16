@@ -21,6 +21,8 @@ export interface Equipment {
   productionLine: string;
   createdAt?: string;
   maintenanceHistory: string[];
+  qrCodePath?: string;
+  qrCodeUrl?: string;
 }
 
 export interface Worker {
@@ -115,6 +117,64 @@ export interface ServiceOrder {
   parts: Part[];
   history: OSHistoryEntry[];
   images: string[];
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  resource: string;
+  resourceId: string;
+  action: string;
+  category?: string;
+  userId?: string;
+  userName: string;
+  details?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AuditLogRow {
+  id: string;
+  timestamp: string;
+  resource: string;
+  resource_id: string;
+  action: string;
+  category?: string | null;
+  user_id?: string | null;
+  user_name: string;
+  details?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export type TagType = "QR" | "NFC" | "RFID";
+
+export interface EquipmentTagRow {
+  id: string;
+  equipment_id: string;
+  tag_type: TagType;
+  tag_value: string;
+  created_at: string;
+}
+
+export type SensorType = "temperature" | "vibration" | "pressure" | "power" | "runtime";
+
+export interface IoTSensorRow {
+  id: string;
+  equipment_id: string;
+  sensor_name: string;
+  sensor_type: SensorType;
+  status: string;
+  created_at: string;
+  updated_at?: string | null;
+}
+
+export interface IoTSensorEventRow {
+  id: string;
+  sensor_id: string;
+  recorded_at: string;
+  metric_value: number;
+  metric_unit: string;
+  details?: string | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface User {
@@ -373,6 +433,36 @@ export interface Database {
         ServiceOrderHistoryRow,
         Omit<ServiceOrderHistoryRow, "id"> & { id?: string },
         Partial<Omit<ServiceOrderHistoryRow, "id" | "service_order_id">>
+      >;
+      audit_logs: SupabaseTable<
+        AuditLogRow,
+        Omit<AuditLogRow, "id"> & { id?: string },
+        Partial<
+          Omit<
+            AuditLogRow,
+            | "id"
+            | "resource"
+            | "resource_id"
+            | "action"
+            | "user_name"
+            | "timestamp"
+          >
+        >
+      >;
+      equipment_tags: SupabaseTable<
+        EquipmentTagRow,
+        Omit<EquipmentTagRow, "id"> & { id?: string },
+        Partial<Omit<EquipmentTagRow, "id" | "equipment_id">>
+      >;
+      iot_sensors: SupabaseTable<
+        IoTSensorRow,
+        Omit<IoTSensorRow, "id"> & { id?: string },
+        Partial<Omit<IoTSensorRow, "id" | "equipment_id">>
+      >;
+      iot_events: SupabaseTable<
+        IoTSensorEventRow,
+        Omit<IoTSensorEventRow, "id"> & { id?: string },
+        Partial<Omit<IoTSensorEventRow, "id" | "sensor_id">>
       >;
       time_entries: SupabaseTable<
         TimeEntryRow,

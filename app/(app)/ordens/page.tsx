@@ -1,5 +1,11 @@
 import { OSListView } from "@/components/os-list-view";
 
-export default function OrdensPage() {
-  return <OSListView />;
+interface OrdensPageProps {
+  searchParams: {
+    equipmentId?: string;
+  };
+}
+
+export default function OrdensPage({ searchParams }: OrdensPageProps) {
+  return <OSListView initialEquipmentId={searchParams.equipmentId} />;
 }

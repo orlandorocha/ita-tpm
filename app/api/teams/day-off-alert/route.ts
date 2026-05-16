@@ -17,7 +17,6 @@ import {
 } from "@/lib/day-off-alerts";
 import type {
   EquipmentRow,
-  OverdueServiceOrderAlert,
   ServiceOrderRow,
   ServiceOrderWorkerRow,
   UserRow,
@@ -26,6 +25,7 @@ import type {
   WorkScheduleRow,
   WorkerRow,
 } from "@/lib/types";
+import type { OverdueServiceOrderAlert } from "@/lib/day-off-alerts";
 
 export const dynamic = "force-dynamic";
 

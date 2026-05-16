@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useEquipments } from "../hooks/useEquipments";
 import type { Equipment, EquipmentInput } from "@/lib/types";
-import { Plus, Pencil, Trash2, X, Search, Wrench, MapPin, Factory } from "lucide-react";
+import { uploadEquipmentQrCodeForEquipment } from "@/lib/equipmentQr";
+import { EquipmentQrModal } from "./equipment-qr-modal";
+import { Camera, Eye, Plus, Pencil, Trash2, QrCode, X, Search, Wrench, MapPin, Factory } from "lucide-react";
 
 function EquipmentFormModal({
   equipment,
@@ -37,6 +40,12 @@ function EquipmentFormModal({
 
     if (!result) {
       return;
+    }
+
+    if (typeof window !== "undefined") {
+      await uploadEquipmentQrCodeForEquipment(result, window.location.origin).catch(() => {
+        // O upload é opcional aqui: o QR Code pode ser gerado e salvo posteriormente.
+      });
     }
 
     await onSaved();
@@ -125,6 +134,7 @@ export function EquipmentView() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<Equipment | undefined>();
+  const [qrEquipment, setQrEquipment] = useState<Equipment | undefined>();
 
   const filtered = equipments.filter(
     (equipment) =>
@@ -146,15 +156,23 @@ export function EquipmentView() {
             className="w-full bg-input border border-border rounded pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
           />
         </div>
-        <button
-          onClick={() => {
-            setEditingEquipment(undefined);
-            setShowForm(true);
-          }}
-          className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4" /> Novo Equipamento
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => {
+              setEditingEquipment(undefined);
+              setShowForm(true);
+            }}
+            className="flex items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" /> Novo Equipamento
+          </button>
+          <Link
+            href="/equipamentos/scan"
+            className="flex items-center justify-center gap-2 rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <Camera className="w-4 h-4" /> Ler QR
+          </Link>
+        </div>
       </div>
 
       {loading && equipments.length === 0 && (
@@ -176,14 +194,19 @@ export function EquipmentView() {
               </div>
               <div className="flex items-center gap-1 shrink-0 ml-2">
                 <button
-                  onClick={() => {
-                    setEditingEquipment(equipment);
-                    setShowForm(true);
-                  }}
+                  onClick={() => setQrEquipment(equipment)}
                   className="p-1.5 text-muted-foreground hover:text-foreground"
+                  title="Visualizar QR Code"
                 >
-                  <Pencil className="w-3.5 h-3.5" />
+                  <QrCode className="w-3.5 h-3.5" />
                 </button>
+                <Link
+                  href={`/equipamentos/${equipment.id}`}
+                  className="p-1.5 text-muted-foreground hover:text-foreground"
+                  title="Ver histórico"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </Link>
                 <button
                   onClick={async () => {
                     if (confirm(`Excluir ${equipment.name}?`)) {
@@ -221,6 +244,12 @@ export function EquipmentView() {
             setShowForm(false);
             setEditingEquipment(undefined);
           }}
+        />
+      )}
+      {qrEquipment && (
+        <EquipmentQrModal
+          equipment={qrEquipment}
+          onClose={() => setQrEquipment(undefined)}
         />
       )}
       {error && <div className="text-red-500 text-xs pt-2">{error}</div>}

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import './globals.css'
+import { PwaRegister } from '@/components/pwa-register'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
     ],
     apple: '/pepsico-logo.png',
   },
+  manifest: '/manifest.webmanifest',
 }
 
 export const viewport: Viewport = {
@@ -30,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground min-h-screen">
+        <PwaRegister />
         {children}
       </body>
     </html>

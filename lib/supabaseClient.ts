@@ -21,5 +21,5 @@ type PublicSchema = Database["public"];
 type PublicTableName = keyof PublicSchema["Tables"] & string;
 
 export function fromPublicTable<TableName extends PublicTableName>(table: TableName) {
-	return supabase.from(table);
+	return supabase.from(table) as any;
 }
