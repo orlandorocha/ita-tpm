@@ -502,6 +502,31 @@ export function OSListView({ initialEquipmentId }: { initialEquipmentId?: string
   const canDelete = hasPermission(userRole, "os:delete");
   const canViewAll = hasPermission(userRole, "os:view");
 
+  useEffect(() => {
+    if (!initialEquipmentId || showForm || selectedOrder || equipments.length === 0) {
+      return;
+    }
+
+    const relatedOrder = serviceOrders
+      .filter((order) => order.equipmentId === initialEquipmentId)
+      .sort((left, right) => new Date(right.openedAt).getTime() - new Date(left.openedAt).getTime())[0];
+
+    if (relatedOrder) {
+      if (canEdit) {
+        setEditingOrder(relatedOrder);
+        setShowForm(true);
+      } else {
+        setSelectedOrder(relatedOrder);
+      }
+      return;
+    }
+
+    if (canCreate) {
+      setEditingOrder(undefined);
+      setShowForm(true);
+    }
+  }, [initialEquipmentId, equipments.length, selectedOrder, serviceOrders, showForm, canCreate, canEdit]);
+
   const baseOrders = canViewAll
     ? serviceOrders
     : serviceOrders.filter((order) => linkedWorkerId && order.workerIds.includes(linkedWorkerId));
