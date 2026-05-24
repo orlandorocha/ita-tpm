@@ -86,7 +86,15 @@ export function Sidebar({
     <>
       <div className="flex items-center gap-3 px-4 h-14 border-b border-sidebar-border shrink-0">
         <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white px-2 shrink-0">
-          <Image src="/pepsico-logo.png" alt="PepsiCo" width={72} height={20} className="h-auto w-full" priority />
+          <Image
+            src="/pepsico-logo.png"
+            alt="PepsiCo"
+            width={72}
+            height={20}
+            className="h-auto"
+            style={{ width: "100%", height: "auto" }}
+            priority
+          />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sidebar-foreground font-semibold text-sm leading-none tracking-wide truncate">

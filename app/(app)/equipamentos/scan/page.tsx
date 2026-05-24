@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BrowserQRCodeReader } from "@zxing/browser";
 import { ArrowRight, Camera, FileInput, Wrench, X } from "lucide-react";
 
 export default function EquipmentQrScanPage() {
+  const router = useRouter();
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [scanInfo, setScanInfo] = useState<Record<string, string> | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -36,9 +38,20 @@ export default function EquipmentQrScanPage() {
     try {
       const controls = await readerRef.current.decodeFromVideoDevice(undefined, videoRef.current, (result, decodeError) => {
         if (result?.getText()) {
-          setScanResult(result.getText());
+          const rawText = result.getText();
+          setScanResult(rawText);
           setScanning(false);
           controls.stop();
+          scannerControlsRef.current = null;
+
+          try {
+            const parsed = JSON.parse(rawText) as Record<string, string>;
+            if (parsed.equipmentId) {
+              router.push(`/equipamentos/${parsed.equipmentId}`);
+            }
+          } catch {
+            // mantém o comportamento atual se o QR não for JSON válido
+          }
         }
 
         if (decodeError) {
@@ -72,8 +85,18 @@ export default function EquipmentQrScanPage() {
       try {
         const result = await readerRef.current?.decodeFromImageElement(image);
         if (result?.getText()) {
-          setScanResult(result.getText());
+          const rawText = result.getText();
+          setScanResult(rawText);
           setError(null);
+
+          try {
+            const parsed = JSON.parse(rawText) as Record<string, string>;
+            if (parsed.equipmentId) {
+              router.push(`/equipamentos/${parsed.equipmentId}`);
+            }
+          } catch {
+            // mantém o resultado atual se não for JSON válido
+          }
         } else {
           setError("QR Code não encontrado na imagem.");
         }
