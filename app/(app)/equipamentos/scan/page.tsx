@@ -48,6 +48,8 @@ export default function EquipmentQrScanPage() {
             const parsed = JSON.parse(rawText) as Record<string, string>;
             if (parsed.equipmentId) {
               router.push(`/equipamentos/${parsed.equipmentId}`);
+            } else if (parsed.url) {
+              router.push(parsed.url);
             }
           } catch {
             // mantém o comportamento atual se o QR não for JSON válido
@@ -93,6 +95,8 @@ export default function EquipmentQrScanPage() {
             const parsed = JSON.parse(rawText) as Record<string, string>;
             if (parsed.equipmentId) {
               router.push(`/equipamentos/${parsed.equipmentId}`);
+            } else if (parsed.url) {
+              router.push(parsed.url);
             }
           } catch {
             // mantém o resultado atual se não for JSON válido
