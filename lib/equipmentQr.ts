@@ -79,14 +79,9 @@ export async function uploadEquipmentQrCodeForEquipment(
   },
   origin: string
 ) {
-  const payload = buildEquipmentQrPayload({
-    equipmentId: equipment.id,
-    tag: equipment.code,
-    setor: equipment.location,
-    linha: equipment.productionLine,
-    url: `${origin}/equipamentos/${equipment.id}`,
-  });
-
-  const dataUrl = await generateQrCodeDataUrl(payload);
+  // Gerar QR contendo apenas a URL do equipamento para permitir
+  // que leitores nativos do celular abram automaticamente a página.
+  const equipmentUrl = `${origin}/equipamentos/${equipment.id}`;
+  const dataUrl = await generateQrCodeDataUrl(equipmentUrl);
   return uploadEquipmentQrCode(equipment.id, dataUrl, true);
 }

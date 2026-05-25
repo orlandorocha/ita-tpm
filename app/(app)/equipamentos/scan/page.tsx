@@ -49,10 +49,19 @@ export default function EquipmentQrScanPage() {
             if (parsed.equipmentId) {
               router.push(`/equipamentos/${parsed.equipmentId}`);
             } else if (parsed.url) {
-              router.push(parsed.url);
+              if (/^https?:\/\//.test(parsed.url)) {
+                window.location.assign(parsed.url);
+              } else {
+                router.push(parsed.url);
+              }
             }
           } catch {
-            // mantém o comportamento atual se o QR não for JSON válido
+            // se não for JSON, aceita também QR que contenha diretamente uma URL
+            if (/^https?:\/\//.test(rawText)) {
+              window.location.assign(rawText);
+            } else if (rawText.startsWith("/")) {
+              router.push(rawText);
+            }
           }
         }
 
@@ -96,10 +105,19 @@ export default function EquipmentQrScanPage() {
             if (parsed.equipmentId) {
               router.push(`/equipamentos/${parsed.equipmentId}`);
             } else if (parsed.url) {
-              router.push(parsed.url);
+              if (/^https?:\/\//.test(parsed.url)) {
+                window.location.assign(parsed.url);
+              } else {
+                router.push(parsed.url);
+              }
             }
           } catch {
-            // mantém o resultado atual se não for JSON válido
+            // se não for JSON, aceita também QR que contenha diretamente uma URL
+            if (/^https?:\/\//.test(rawText)) {
+              window.location.assign(rawText);
+            } else if (rawText.startsWith("/")) {
+              router.push(rawText);
+            }
           }
         } else {
           setError("QR Code não encontrado na imagem.");
