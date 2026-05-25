@@ -33,14 +33,12 @@ export function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border/50 shadow-xl">
         <CardHeader className="text-center space-y-4 pb-2">
-          <div className="mx-auto flex h-16 w-40 items-center justify-center rounded-2xl border border-border bg-background px-4 shadow-sm">
+          <div className="mx-auto relative flex h-16 w-40 items-center justify-center rounded-2xl border border-border bg-background px-4 shadow-sm">
             <Image
               src="/pepsico-logo.png"
               alt="PepsiCo"
-              width={120}
-              height={32}
-              className="h-auto w-auto max-h-8"
-              style={{ width: "auto", height: "auto" }}
+              fill
+              style={{ objectFit: "contain" }}
               priority
             />
           </div>
