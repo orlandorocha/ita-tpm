@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useApp } from "@/lib/app-context";
 import { useEquipments } from "../hooks/useEquipments";
+import { hasPermission } from "@/lib/permissions";
 import type { Equipment, EquipmentInput } from "@/lib/types";
 import { uploadEquipmentQrCodeForEquipment } from "@/lib/equipmentQr";
 import { EquipmentQrModal } from "./equipment-qr-modal";
@@ -130,11 +132,16 @@ function EquipmentFormModal({
 }
 
 export function EquipmentView() {
+  const { state } = useApp();
   const { equipments, remove, getAll, loading, error } = useEquipments();
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<Equipment | undefined>();
   const [qrEquipment, setQrEquipment] = useState<Equipment | undefined>();
+
+  const canCreateEquipment = hasPermission(state.currentUser?.role, "equipment:create");
+  const canEditEquipment = hasPermission(state.currentUser?.role, "equipment:edit");
+  const canDeleteEquipment = hasPermission(state.currentUser?.role, "equipment:delete");
 
   const filtered = equipments.filter(
     (equipment) =>
@@ -157,15 +164,17 @@ export function EquipmentView() {
           />
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => {
-              setEditingEquipment(undefined);
-              setShowForm(true);
-            }}
-            className="flex items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4" /> Novo Equipamento
-          </button>
+          {canCreateEquipment && (
+            <button
+              onClick={() => {
+                setEditingEquipment(undefined);
+                setShowForm(true);
+              }}
+              className="flex items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4" /> Novo Equipamento
+            </button>
+          )}
           <Link
             href="/equipamentos/scan"
             className="flex items-center justify-center gap-2 rounded border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
@@ -207,16 +216,19 @@ export function EquipmentView() {
                 >
                   <Eye className="w-3.5 h-3.5" />
                 </Link>
-                <button
-                  onClick={async () => {
-                    if (confirm(`Excluir ${equipment.name}?`)) {
-                      await remove(equipment.id);
-                    }
-                  }}
-                  className="p-1.5 text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                {canDeleteEquipment && (
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Excluir ${equipment.name}?`)) {
+                        await remove(equipment.id);
+                      }
+                    }}
+                    className="p-1.5 text-muted-foreground hover:text-destructive"
+                    title="Excluir equipamento"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 text-xs text-muted-foreground">

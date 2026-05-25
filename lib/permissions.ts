@@ -109,7 +109,8 @@ const permissionMatrix: Record<UserRole, Permission[]> = {
     "time:log",
     "time:view_own",
     // Workers - não tem acesso
-    // Equipment - não tem acesso
+    // Equipment - visualizar para leitura QR e histórico
+    "equipment:view",
     // Reports - não tem acesso
     // Settings - visualizar próprio perfil
     "settings:view",
@@ -122,6 +123,8 @@ const permissionMatrix: Record<UserRole, Permission[]> = {
     "os:finish",
     "time:log",
     "time:view_own",
+    // Equipment - visualizar para leitura QR e histórico
+    "equipment:view",
     "settings:view",
   ],
 };
