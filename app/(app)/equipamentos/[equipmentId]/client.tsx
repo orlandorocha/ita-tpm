@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Clock3, QrCode, Wrench } from "lucide-react";
+import { ArrowLeft, Clock3, QrCode, Wrench, User, Calendar } from "lucide-react";
+import { useWorkers } from "@/hooks/useWorkers";
+import { formatDate } from "@/lib/format";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useServiceOrders } from "@/hooks/useServiceOrders";
 import { EquipmentQrModal } from "@/components/equipment-qr-modal";
@@ -14,6 +16,7 @@ interface EquipmentDetailsClientProps {
 export default function EquipmentDetailsClient({ equipmentId }: EquipmentDetailsClientProps) {
   const { equipments, getAll: reloadEquipments, loading: equipmentLoading, error: equipmentError } = useEquipments();
   const { serviceOrders, getAll: reloadOrders, loading: ordersLoading } = useServiceOrders();
+  const { workers, getAll: reloadWorkers, loading: workersLoading } = useWorkers();
   const [showQrModal, setShowQrModal] = useState(false);
 
   const equipment = useMemo(
@@ -26,6 +29,11 @@ export default function EquipmentDetailsClient({ equipmentId }: EquipmentDetails
     [serviceOrders, equipmentId]
   );
 
+  const workersMap = useMemo(
+    () => new Map(workers.map((w) => [w.id, w])),
+    [workers]
+  );
+
   useEffect(() => {
     if (!equipment) {
       void reloadEquipments();
@@ -34,7 +42,11 @@ export default function EquipmentDetailsClient({ equipmentId }: EquipmentDetails
     if (serviceOrders.length === 0) {
       void reloadOrders();
     }
-  }, [equipment, reloadEquipments, reloadOrders, serviceOrders.length]);
+
+    if (workers.length === 0) {
+      void reloadWorkers();
+    }
+  }, [equipment, reloadEquipments, reloadOrders, reloadWorkers, serviceOrders.length, workers.length]);
 
   if (equipmentLoading && !equipment) {
     return <div className="p-6 text-sm text-muted-foreground">Carregando equipamento...</div>;
@@ -108,18 +120,47 @@ export default function EquipmentDetailsClient({ equipmentId }: EquipmentDetails
               <p className="text-sm text-muted-foreground">Nenhuma ordem de serviço registrada para este equipamento.</p>
             )}
             <div className="space-y-3">
-              {relatedOrders.map((order) => (
-                <div key={order.id} className="rounded-lg border border-border bg-background p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">OS {order.number}</p>
-                      <p className="text-xs text-muted-foreground">{order.type} • {order.status}</p>
+              {relatedOrders.map((order) => {
+                const assignedWorkers = order.workerIds
+                  .map((workerId) => workersMap.get(workerId)?.name)
+                  .filter(Boolean)
+                  .join(", ");
+
+                return (
+                  <div key={order.id} className="rounded-lg border border-border bg-background p-4">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">OS {order.number}</p>
+                        <p className="text-xs text-muted-foreground">{order.type} • {order.status}</p>
+                      </div>
+                      <span className="rounded-full bg-muted px-2 py-1 text-[11px] uppercase text-muted-foreground">{order.priority}</span>
                     </div>
-                    <span className="rounded-full bg-muted px-2 py-1 text-[11px] uppercase text-muted-foreground">{order.priority}</span>
+
+                    <p className="text-sm text-foreground/80 line-clamp-2 mb-3">{order.description}</p>
+
+                    <div className="space-y-2 text-xs text-muted-foreground">
+                      {assignedWorkers && (
+                        <div className="flex items-center gap-2">
+                          <User className="w-3.5 h-3.5" />
+                          <span>{assignedWorkers}</span>
+                        </div>
+                      )}
+                      {order.openedAt && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>{formatDate(order.openedAt)}</span>
+                        </div>
+                      )}
+                      {order.finishedAt && (
+                        <div className="flex items-center gap-2">
+                          <Clock3 className="w-3.5 h-3.5" />
+                          <span>Finalizada em {formatDate(order.finishedAt)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="mt-3 text-sm text-foreground/80 line-clamp-2">{order.description}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
