@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AppProvider, useApp } from "@/lib/app-context";
 import { Sidebar, TopBar, getPageTitle } from "@/components/shell";
 import { LoginForm } from "@/components/login-form";
+import QRCodeOperacionalPage from "./qrcode-operacional/page";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { state } = useApp();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (state.isHydrating) {
@@ -21,6 +23,18 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!state.isAuthenticated) {
     return <LoginForm />;
+  }
+
+  // Verifica se precisa de autenticação operacional
+  if (state.operationalAuthRequired && !state.operationalAuthCompleted) {
+    // Renderiza apenas a página de QR Code sem sidebar/menu
+    return <QRCodeOperacionalPage />;
+  }
+
+  // Bloqueia acesso direto à rota /qrcode-operacional após conclusão do fluxo
+  if (pathname === "/qrcode-operacional") {
+    router.replace("/ordens");
+    return null;
   }
 
   const pageTitle = getPageTitle(pathname);

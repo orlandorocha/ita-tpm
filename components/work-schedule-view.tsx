@@ -14,7 +14,8 @@ import {
   subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarDays, ChevronLeft, ChevronRight, RotateCcw, Search, Users } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, LayoutList, RotateCcw, Search, Users } from "lucide-react";
+import { DailyStatusModal } from "@/components/daily-status-modal";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -140,6 +141,7 @@ export function WorkScheduleView() {
   const [scaleFilter, setScaleFilter] = useState<ScheduleCode | "ALL">("ALL");
   const [selectedWorkerKey, setSelectedWorkerKey] = useState<string | null>(null);
   const [dayEditor, setDayEditor] = useState<DayEditorState | null>(null);
+  const [dailyStatusOpen, setDailyStatusOpen] = useState(false);
 
   const overrides = useMemo(() => {
     return overrideRows.reduce<OverrideMap>((accumulator, override) => {
@@ -405,9 +407,18 @@ export function WorkScheduleView() {
             Calendário mensal de dias trabalhados e folgas por manutentor, usando a ordem de escalas da planilha enviada.
           </p>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-          <CalendarDays className="h-4 w-4 text-primary" />
-          Clique no dia para abrir os ajustes. Hora extra vale só para a data escolhida; ajustes de ciclo continuam recorrentes.
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setDailyStatusOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+          >
+            <LayoutList className="h-4 w-4" />
+            Situacao de hoje
+          </button>
+          <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+            <CalendarDays className="h-4 w-4 text-primary" />
+            Clique no dia para abrir os ajustes. Hora extra vale so para a data escolhida; ajustes de ciclo continuam recorrentes.
+          </div>
         </div>
       </div>
 
@@ -924,6 +935,8 @@ export function WorkScheduleView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DailyStatusModal open={dailyStatusOpen} onOpenChange={setDailyStatusOpen} />
     </div>
   );
 }

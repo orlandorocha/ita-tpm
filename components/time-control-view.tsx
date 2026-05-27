@@ -10,8 +10,9 @@ import { hasPermission } from "@/lib/permissions";
 import { formatDate, formatDateTime, formatHours, getOSStatusColor, getWorkerStatusColor, isServiceOrderOverdue } from "@/lib/format";
 import { getScheduledWorkerDayStatus, resolveScheduledWorkers } from "@/lib/work-schedules";
 import { resolveCurrentUserWorkerId } from "@/lib/utils";
-import type { ActivityType, ServiceOrder, TimeEntry, Worker } from "@/lib/types";
+import type { ActivityType, Part, ServiceOrder, TimeEntry, Worker } from "@/lib/types";
 import { Play, Pause, Square, Activity } from "lucide-react";
+import { PartsUsedModal } from "@/components/parts-used-modal";
 
 function LiveTimer({ startIso }: { startIso: string }) {
   const [elapsed, setElapsed] = useState(() => (Date.now() - new Date(startIso).getTime()) / 1000);
@@ -260,6 +261,7 @@ export function TimeControlView() {
     serviceOrders,
     setWorkers,
     changeStatus,
+    addPart,
     loading: ordersLoading,
     error: ordersError,
   } = useServiceOrders();
@@ -277,6 +279,11 @@ export function TimeControlView() {
   const canViewAll = hasPermission(userRole, "time:view_all");
   const currentWorkerId = resolveCurrentUserWorkerId(state.currentUser, workers);
   const today = new Date();
+
+  // Estado para modal de peças após finalização
+  const [partsModalOpen, setPartsModalOpen] = useState(false);
+  const [finishedOrderId, setFinishedOrderId] = useState<string | null>(null);
+  const [finishedOrderNumber, setFinishedOrderNumber] = useState<string>("");
 
   const dayStatusByWorkerId = useMemo(() => {
     const scheduledWorkers = resolveScheduledWorkers(workers, schedules);
@@ -308,6 +315,23 @@ export function TimeControlView() {
 
   const loading = workersLoading || ordersLoading || timeLoading;
   const error = workersError || ordersError || timeError;
+
+  // Bloqueia acesso ao controle de tempo para perfil Operador
+  if (userRole === "Operador") {
+    return (
+      <div className="p-4 sm:p-6 space-y-4">
+        <div>
+          <h2 className="text-foreground font-semibold">Controle de Tempo</h2>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            Apontamento de horas em tempo real
+          </p>
+        </div>
+        <div className="rounded-lg border border-status-warning/30 bg-status-warning/10 px-4 py-3 text-sm text-status-warning">
+          O perfil Operador nao possui acesso ao Controle de Tempo. Esta funcionalidade esta disponivel apenas para Manutentores e perfis com permissao de supervisao.
+        </div>
+      </div>
+    );
+  }
 
   async function handleStartWork(workerId: string, serviceOrderId: string, activityType: ActivityType) {
     if (!serviceOrderId) return;
@@ -341,10 +365,32 @@ export function TimeControlView() {
   }
 
   async function handleFinish(entryId: string, workerId: string) {
+    const entry = timeEntries.find((e) => e.id === entryId);
+    if (!entry) return;
+
+    const order = serviceOrders.find((o) => o.id === entry.osId);
+    if (!order) return;
+
     const finishedEntry = await finish(entryId);
     if (!finishedEntry) return;
 
     await updateWorker(workerId, { status: "Disponível" });
+    
+    // Finaliza a OS automaticamente
+    await changeStatus(order.id, "Finalizada", currentUserName);
+
+    // Abre a modal de peças
+    setFinishedOrderId(order.id);
+    setFinishedOrderNumber(order.number);
+    setPartsModalOpen(true);
+  }
+
+  async function handleSaveParts(parts: Omit<Part, "id">[]) {
+    if (!finishedOrderId) return;
+
+    for (const part of parts) {
+      await addPart(finishedOrderId, part, currentUserName);
+    }
   }
 
   return (
@@ -464,6 +510,13 @@ export function TimeControlView() {
       </div>
 
       {error && <div className="text-sm text-destructive">{error}</div>}
+
+      <PartsUsedModal
+        open={partsModalOpen}
+        onOpenChange={setPartsModalOpen}
+        osNumber={finishedOrderNumber}
+        onSaveParts={handleSaveParts}
+      />
     </div>
   );
 }

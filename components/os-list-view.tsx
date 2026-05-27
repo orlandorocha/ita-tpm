@@ -598,6 +598,21 @@ export function OSListView({
     setSelectedOrder(refreshedOrder);
   }
 
+  // Verifica se o usuário é Manutentor ou Operador e se não tem equipamento escaneado
+  const isOperationalProfile = state.currentUser?.role === "Manutentor" || state.currentUser?.role === "Operador";
+  const hasScannedEquipment = !!state.scannedEquipmentId;
+
+  // Se for perfil operacional e não tem equipamento escaneado, bloqueia o acesso
+  if (isOperationalProfile && !hasScannedEquipment) {
+    return (
+      <div className="p-4 sm:p-6 space-y-4">
+        <div className="rounded-lg border border-status-danger/30 bg-status-danger/10 px-4 py-3 text-sm text-status-danger">
+          Para acessar o Histórico de Manutenção, é necessário validar um equipamento via QR Code primeiro.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 space-y-5">
       <div className="flex flex-col lg:flex-row lg:items-center gap-3">

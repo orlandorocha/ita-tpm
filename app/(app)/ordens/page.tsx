@@ -1,19 +1,27 @@
+import { OperationalAccessBanner } from "@/components/operational-access-banner";
 import { OSListView } from "@/components/os-list-view";
 
 interface OrdensPageProps {
-  searchParams: {
+  searchParams: Promise<{
     equipmentId?: string;
     action?: string;
     orderId?: string;
-  };
+    authCompleted?: string;
+  }>;
 }
 
-export default function OrdensPage({ searchParams }: OrdensPageProps) {
+export default async function OrdensPage({ searchParams }: OrdensPageProps) {
+  const params = await searchParams;
+  const showBanner = params.authCompleted === "1";
+
   return (
-    <OSListView
-      initialEquipmentId={searchParams.equipmentId}
-      initialAction={searchParams.action}
-      initialOrderId={searchParams.orderId}
-    />
+    <>
+      {showBanner && <OperationalAccessBanner />}
+      <OSListView
+        initialEquipmentId={params.equipmentId}
+        initialAction={params.action}
+        initialOrderId={params.orderId}
+      />
+    </>
   );
 }
