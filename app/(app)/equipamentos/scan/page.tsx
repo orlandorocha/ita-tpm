@@ -12,13 +12,16 @@ export default function EquipmentQrScanPage() {
   const [scanInfo, setScanInfo] = useState<Record<string, string> | null>(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserQRCodeReader | null>(null);
   const scannerControlsRef = useRef<{ stop: () => void } | null>(null);
 
   useEffect(() => {
+    setIsMounted(true);
     readerRef.current = new BrowserQRCodeReader();
     return () => {
+      setIsMounted(false);
       scannerControlsRef.current?.stop();
     };
   }, []);
@@ -46,20 +49,22 @@ export default function EquipmentQrScanPage() {
 
           try {
             const parsed = JSON.parse(rawText) as Record<string, string>;
-            if (parsed.equipmentId) {
+            if (parsed.equipmentId && isMounted) {
               router.push(`/equipamentos/${parsed.equipmentId}`);
             } else if (parsed.url) {
               if (/^https?:\/\//.test(parsed.url)) {
                 window.location.assign(parsed.url);
               } else {
-                router.push(parsed.url);
+                if (isMounted) {
+                  router.push(parsed.url);
+                }
               }
             }
           } catch {
             // se não for JSON, aceita também QR que contenha diretamente uma URL
             if (/^https?:\/\//.test(rawText)) {
               window.location.assign(rawText);
-            } else if (rawText.startsWith("/")) {
+            } else if (rawText.startsWith("/") && isMounted) {
               router.push(rawText);
             }
           }
