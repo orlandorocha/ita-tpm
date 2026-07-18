@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BrowserQRCodeReader } from "@zxing/browser";
 import { Camera, FileInput, QrCode, Shield, X } from "lucide-react";
@@ -58,7 +58,9 @@ export default function QRCodeOperacionalPage() {
 
         // Redireciona para o histórico de manutenção após breve delay
         setTimeout(() => {
-          router.push("/ordens?authCompleted=1");
+          startTransition(() => {
+            router.push("/ordens?authCompleted=1");
+          });
         }, 1500);
       } else {
         setError("QR Code inválido. O QR Code deve conter informações de um equipamento.");
