@@ -123,30 +123,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Add timeout to prevent infinite loading (2 seconds max)
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), 2000)
-      );
+      console.log("[v0] Refreshing user:", userId);
 
-      const fetchPromise = supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .eq("active", true)
-        .single();
+      const response = await fetch(`/api/auth/refresh?userId=${userId}`);
 
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-
-      if (error || !data) {
+      if (!response.ok) {
+        console.log("[v0] User refresh failed with status:", response.status);
         setCurrentUser(null);
         return null;
       }
 
-      const mappedUser = mapUserRow(data);
+      const result = await response.json();
+      if (!result.success || !result.user) {
+        console.log("[v0] User refresh response invalid");
+        setCurrentUser(null);
+        return null;
+      }
+
+      console.log("[v0] User refreshed successfully:", result.user.id);
+
+      const mappedUser = mapUserRow(result.user);
       setCurrentUser(mappedUser);
       return mappedUser;
     } catch (err) {
-      // If any error occurs (including timeout), reset hydration state
+      console.error("[v0] User refresh error:", err);
+      // If any error occurs, reset hydration state
       setState({
         currentUser: null,
         isAuthenticated: false,
@@ -161,38 +162,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string): Promise<boolean> => {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("email", email)
-        .eq("password", password)
-        .eq("active", true)
-        .single();
+      try {
+        console.log("[v0] Login attempt for email:", email);
 
-      if (error || !data) {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!response.ok) {
+          console.log("[v0] Login failed with status:", response.status);
+          return false;
+        }
+
+        const result = await response.json();
+        if (!result.success || !result.user) {
+          console.log("[v0] Login response invalid");
+          return false;
+        }
+
+        console.log("[v0] Login successful for user:", result.user.id);
+
+        // Limpa auth operacional anterior ao fazer novo login
+        setOperationalAuthToStorage(null);
+
+        const mappedUser = mapUserRow(result.user);
+        const needsOperationalAuth = requiresOperationalAuth(mappedUser.role);
+
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(SESSION_STORAGE_KEY, mappedUser.id);
+        }
+
+        setState({
+          currentUser: mappedUser,
+          isAuthenticated: true,
+          isHydrating: false,
+          operationalAuthRequired: needsOperationalAuth,
+          operationalAuthCompleted: !needsOperationalAuth,
+          scannedEquipmentId: undefined,
+        });
+
+        return true;
+      } catch (err) {
+        console.error("[v0] Login error:", err);
         return false;
       }
-
-      // Limpa auth operacional anterior ao fazer novo login
-      setOperationalAuthToStorage(null);
-
-      const mappedUser = mapUserRow(data);
-      const needsOperationalAuth = requiresOperationalAuth(mappedUser.role);
-
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(SESSION_STORAGE_KEY, mappedUser.id);
-      }
-
-      setState({
-        currentUser: mappedUser,
-        isAuthenticated: true,
-        isHydrating: false,
-        operationalAuthRequired: needsOperationalAuth,
-        operationalAuthCompleted: !needsOperationalAuth, // Já completo se não precisa
-        scannedEquipmentId: undefined,
-      });
-
-      return true;
     },
     []
   );
@@ -226,21 +243,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 2000)
-        );
+        console.log("[v0] Initializing auth for user:", userId);
 
-        const fetchPromise = supabase
-          .from("users")
-          .select("*")
-          .eq("id", userId)
-          .eq("active", true)
-          .single();
-
-        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        const response = await fetch(`/api/auth/refresh?userId=${userId}`);
 
         if (isMounted) {
-          if (error || !data) {
+          if (!response.ok) {
+            console.log("[v0] Init auth fetch failed with status:", response.status);
             setState({
               currentUser: null,
               isAuthenticated: false,
@@ -250,21 +259,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
               scannedEquipmentId: undefined,
             });
           } else {
-            const mappedUser = mapUserRow(data);
-            const needsOperationalAuth = requiresOperationalAuth(mappedUser.role);
-            const storedAuth = getOperationalAuthFromStorage();
+            const result = await response.json();
+            if (!result.success || !result.user) {
+              console.log("[v0] Init auth response invalid");
+              setState({
+                currentUser: null,
+                isAuthenticated: false,
+                isHydrating: false,
+                operationalAuthRequired: false,
+                operationalAuthCompleted: false,
+                scannedEquipmentId: undefined,
+              });
+            } else {
+              const mappedUser = mapUserRow(result.user);
+              const needsOperationalAuth = requiresOperationalAuth(mappedUser.role);
+              const storedAuth = getOperationalAuthFromStorage();
 
-            setState({
-              currentUser: mappedUser,
-              isAuthenticated: true,
-              isHydrating: false,
-              operationalAuthRequired: needsOperationalAuth,
-              operationalAuthCompleted: needsOperationalAuth ? (storedAuth?.completed ?? false) : true,
-              scannedEquipmentId: storedAuth?.equipmentId,
-            });
+              console.log("[v0] Init auth successful for user:", mappedUser.id);
+
+              setState({
+                currentUser: mappedUser,
+                isAuthenticated: true,
+                isHydrating: false,
+                operationalAuthRequired: needsOperationalAuth,
+                operationalAuthCompleted: needsOperationalAuth ? (storedAuth?.completed ?? false) : true,
+                scannedEquipmentId: storedAuth?.equipmentId,
+              });
+            }
           }
         }
       } catch (err) {
+        console.error("[v0] Init auth error:", err);
         if (isMounted) {
           setState({
             currentUser: null,
