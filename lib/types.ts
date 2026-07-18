@@ -192,9 +192,6 @@ export interface AuthState {
   currentUser: User | null;
   isAuthenticated: boolean;
   isHydrating: boolean;
-  operationalAuthRequired: boolean;
-  operationalAuthCompleted: boolean;
-  scannedEquipmentId?: string;
 }
 
 // ─── Supabase Rows ────────────────────────────────────────────────────────────
