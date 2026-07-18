@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, startTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BrowserQRCodeReader } from "@zxing/browser";
 import { Camera, FileInput, QrCode, Shield, X } from "lucide-react";
@@ -15,14 +15,22 @@ export default function QRCodeOperacionalPage() {
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserQRCodeReader | null>(null);
   const scannerControlsRef = useRef<{ stop: () => void } | null>(null);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    setIsMounted(true);
     readerRef.current = new BrowserQRCodeReader();
+    
     return () => {
+      setIsMounted(false);
       scannerControlsRef.current?.stop();
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -57,10 +65,10 @@ export default function QRCodeOperacionalPage() {
         completeOperationalAuth(parsed.equipmentId);
 
         // Redireciona para o histórico de manutenção após breve delay
-        setTimeout(() => {
-          startTransition(() => {
+        navigationTimeoutRef.current = setTimeout(() => {
+          if (isMounted) {
             router.push("/ordens?authCompleted=1");
-          });
+          }
         }, 1500);
       } else {
         setError("QR Code inválido. O QR Code deve conter informações de um equipamento.");
